@@ -53,15 +53,19 @@ class Student extends BaseController
             $id = $param3;
         }
 
-        // Check if enrolled
-        if (!$this->enrollmentModel->isEnrolled($userId, $courseId)) {
-            return redirect()->to('/courses')->with('error', 'You are not enrolled in this course');
-        }
-
         $course = $this->courseModel->getCourseDetails($courseId);
 
         if (!$course) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        // Check enrollment or permission (Admin/Instructor/Author)
+        // Admins and Instructors can preview courses
+        $isEnrolled = $this->enrollmentModel->isEnrolled($userId, $courseId);
+        $canPreview = $this->auth->isAdmin() || $this->auth->isInstructor();
+
+        if (!$isEnrolled && !$canPreview) {
+            return redirect()->to('/courses')->with('error', 'You are not enrolled in this course');
         }
 
         // Auto-select first item if no specific item requested
@@ -83,9 +87,26 @@ class Student extends BaseController
         $currentItem = null;
         // Fetch item details based on type
         if ($type == 'lesson') {
-            $currentItem = $this->lessonModel->getLessonWithQuiz($id);  // method name might need checking
-            if ($currentItem)
+            $currentItem = $this->lessonModel->getLessonWithQuiz($id);
+            if ($currentItem) {
                 $currentItem['item_type'] = 'lesson';
+
+                // Check Drip Content Lock
+                if (!empty($currentItem['drip_days']) && $currentItem['drip_days'] > 0) {
+                    $enrollment = $this->enrollmentModel->where('user_id', $userId)->where('course_id', $courseId)->first();
+                    if ($enrollment) {
+                        $daysSinceEnrollment = floor((time() - $enrollment['date_added']) / (60 * 60 * 24));
+
+                        // Allow admins/instructors to bypass
+                        if (!$canPreview && $daysSinceEnrollment < $currentItem['drip_days']) {
+                            $daysRemaining = $currentItem['drip_days'] - $daysSinceEnrollment;
+                            $currentItem['is_locked'] = true;
+                            $currentItem['days_remaining'] = $daysRemaining;
+                            $currentItem['unlock_date'] = date('d M Y', $enrollment['date_added'] + ($currentItem['drip_days'] * 86400));
+                        }
+                    }
+                }
+            }
         } elseif ($type == 'quiz') {
             $currentItem = $this->quizModel->getQuizDetails($id);
             if ($currentItem) {
@@ -98,12 +119,18 @@ class Student extends BaseController
                 $currentItem['item_type'] = 'assignment';
         }
 
+        // Fetch enrollment for progress data
+        $enrollment = $this->enrollmentModel->where('user_id', $userId)->where('course_id', $courseId)->first();
+        $course['progress'] = $enrollment['progress'] ?? 0;
+        $completedItems = json_decode($enrollment['completed_lessons'] ?? '[]', true);
+
         $data = [
             'title' => $course['title'],
-            'course' => $course,  // Contains full structure with quizzes/assignments now
+            'course' => $course,
             'current_item' => $currentItem,
             'current_type' => $type,
             'current_id' => $id,
+            'completed_items' => $completedItems,  // Pass completed items to view
             // Next/Prev logic needs update for mixed content, simple implementation for now:
             'next_lesson' => null,
             'prev_lesson' => null
@@ -330,6 +357,12 @@ class Student extends BaseController
         $resultModel = new \App\Models\QuizResultModel();
         $resultModel->submitResult($data);
 
+        // Update Course Progress
+        $quizDetails = $this->quizModel->getQuizDetails($quizId);
+        if ($quizDetails && !empty($quizDetails['course_id'])) {
+            $this->enrollmentModel->updateProgress($userId, $quizDetails['course_id'], $quizId, 'quiz');
+        }
+
         return redirect()->back()->with('success', "Quiz Submitted! You scored: {$score}%");
     }
 
@@ -367,6 +400,67 @@ class Student extends BaseController
         $submissionModel = new \App\Models\AssignmentSubmissionModel();
         $submissionModel->submitAssignment($data);
 
-        return redirect()->back()->with('success', 'Assignment submitted successfully!');
+        // Update Course Progress
+        $assignmentDetails = $this->assignmentModel->getAssignmentDetails($assignmentId);
+        if ($assignmentDetails && !empty($assignmentDetails['course_id'])) {
+            $this->enrollmentModel->updateProgress($userId, $assignmentDetails['course_id'], $assignmentId, 'assignment');
+        }
+    }
+
+    /**
+     * Mark item as complete
+     */
+    public function mark_complete($courseId, $itemId)
+    {
+        $userId = $this->auth->getUserId();
+
+        // Verify enrollment
+        if (!$this->enrollmentModel->isEnrolled($userId, $courseId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Not enrolled']);
+        }
+
+        $this->enrollmentModel->updateProgress($userId, $courseId, $itemId, 'lesson');
+
+        // Get updated progress
+        $updatedEnrollment = $this->enrollmentModel->where('user_id', $userId)->where('course_id', $courseId)->first();
+        $newProgress = $updatedEnrollment['progress'] ?? 0;
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Marked as complete',
+            'progress' => $newProgress
+        ]);
+    }
+
+    /**
+     * View Certificate
+     */
+    public function certificate($courseId)
+    {
+        $userId = $this->auth->getUserId();
+
+        $enrollment = $this->enrollmentModel->where('user_id', $userId)->where('course_id', $courseId)->first();
+        if (!$enrollment || $enrollment['progress'] < 100) {
+            return redirect()->back()->with('error', 'Course not completed yet.');
+        }
+
+        // Fetch Certificate Template
+        $course = $this->courseModel->getCourseDetails($courseId);
+        $certificateModel = new \App\Models\CertificateModel();
+        $template = null;
+
+        if (!empty($course['certificate_id'])) {
+            $template = $certificateModel->find($course['certificate_id']);
+        }
+
+        $data = [
+            'course' => $course,
+            'user' => $this->auth->getUser(),
+            'enrollment' => $enrollment,
+            'date' => date('d F Y', $enrollment['last_modified']),
+            'template' => $template
+        ];
+
+        return view('student/certificate', $data);
     }
 }

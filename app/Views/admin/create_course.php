@@ -53,6 +53,19 @@
                             </select>
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Certificate Template</label>
+                        <select class="form-select" name="certificate_id">
+                            <option value="">No Certificate</option>
+                            <?php if (!empty($certificates)): ?>
+                                <?php foreach ($certificates as $cert): ?>
+                                    <option value="<?= $cert['id'] ?>"><?= esc($cert['title']) ?></option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                        <small class="text-muted">Select a certificate template to be awarded upon completion.</small>
+                    </div>
                     
                     <div class="mb-3">
                         <label class="form-label">Language *</label>

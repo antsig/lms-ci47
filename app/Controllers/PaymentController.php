@@ -57,7 +57,7 @@ class PaymentController extends BaseController
     private function processFreeEnrollment($userId, $courseId)
     {
         // Add enrollment
-        $this->enrollmentModel->enroll($userId, $courseId);
+        $this->enrollmentModel->enrollUser($userId, $courseId);
         return redirect()->to('/student/course-player/' . $courseId)->with('success', 'Enrolled successfully!');
     }
 

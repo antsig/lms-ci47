@@ -3,18 +3,68 @@
 <?= $this->section('content') ?>
 
 <div class="container-fluid py-4">
+
+    <!-- Mobile Lock Overlay -->
+    <style>
+        .mobile-lock-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        @media (max-width: 991.98px) {
+            .mobile-lock-overlay {
+                display: flex;
+            }
+            body { 
+                overflow: hidden; 
+            }
+        }
+        .sticky-sidebar {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 20px;
+            height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+    </style>
+
+    <div class="mobile-lock-overlay">
+        <i class="fas fa-desktop fa-4x text-primary mb-3"></i>
+        <h2 class="fw-bold">Desktop Only</h2>
+        <p class="lead text-muted">This learning environment is designed for desktop use to ensure the best experience.</p>
+        <p>Please open this page on a laptop or desktop computer.</p>
+        <a href="<?= base_url('/student/dashboard') ?>" class="btn btn-outline-primary mt-3">Back to Dashboard</a>
+    </div>
+
     <div class="row">
         <!-- Sidebar - Curriculum -->
         <div class="col-lg-3 mb-4">
-            <div class="card h-100">
+            <div class="card h-100 sticky-sidebar">
                 <div class="card-header bg-white">
                     <h5 class="mb-0 fw-bold"><?= esc($course['title']) ?></h5>
                     <div class="progress mt-2" style="height: 5px;">
-                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        <div class="progress-bar" role="progressbar" style="width: <?= $course['progress'] ?? 0 ?>%"></div>
                     </div>
-                    <small class="text-muted">0% Complete</small>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <small class="text-muted"><?= $course['progress'] ?? 0 ?>% Complete</small>
+                        <?php if (($course['progress'] ?? 0) >= 100): ?>
+                            <a href="<?= base_url('/student/certificate/' . $course['id']) ?>" class="btn btn-sm btn-success" target="_blank">
+                                <i class="fas fa-certificate"></i> Get Certificate
+                            </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                <div class="card-body p-0" style="max-height: 80vh; overflow-y: auto;">
+                <div class="card-body p-0">
                     <div class="accordion accordion-flush" id="courseCurriculum">
                         <?php if (!empty($course['sections'])): ?>
                             <?php foreach ($course['sections'] as $index => $section): ?>
@@ -31,11 +81,16 @@
                                             <ul class="list-group list-group-flush">
                                                 <!-- Lessons -->
                                                 <?php foreach ($section['lessons'] as $lesson): ?>
-                                                    <?php $isActive = ($current_type == 'lesson' && $lesson['id'] == $current_item['id']); ?>
+                                                    <?php
+                                                    $isActive = ($current_type == 'lesson' && $lesson['id'] == $current_item['id']);
+                                                    $isLessonCompleted = in_array('lesson_' . $lesson['id'], $completed_items ?? []);
+                                                    ?>
                                                     <a href="<?= base_url('/student/course-player/' . $course['id'] . '/' . $lesson['id']) ?>" 
                                                        class="list-group-item list-group-item-action <?= $isActive ? 'active' : '' ?>">
                                                         <div class="d-flex align-items-center">
-                                                            <?php if ($lesson['lesson_type'] == 'video'): ?>
+                                                            <?php if ($isLessonCompleted): ?>
+                                                                <i class="fas fa-check-circle me-2 text-success"></i>
+                                                            <?php elseif ($lesson['lesson_type'] == 'video'): ?>
                                                                 <i class="fas fa-play-circle me-2"></i>
                                                             <?php else: ?>
                                                                 <i class="fas fa-file-alt me-2"></i>
@@ -51,11 +106,18 @@
                                                 <!-- Quizzes -->
                                                 <?php if (!empty($section['quizzes'])): ?>
                                                     <?php foreach ($section['quizzes'] as $quiz): ?>
-                                                        <?php $isActive = ($current_type == 'quiz' && $quiz['id'] == $current_item['id']); ?>
+                                                        <?php
+                                                        $isActive = ($current_type == 'quiz' && $quiz['id'] == $current_item['id']);
+                                                        $isQuizCompleted = in_array('quiz_' . $quiz['id'], $completed_items ?? []);
+                                                        ?>
                                                         <a href="<?= base_url('/student/course-player/' . $course['id'] . '/quiz/' . $quiz['id']) ?>" 
                                                            class="list-group-item list-group-item-action <?= $isActive ? 'active' : '' ?>">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="fas fa-question-circle me-2 text-warning"></i>
+                                                                <?php if ($isQuizCompleted): ?>
+                                                                    <i class="fas fa-check-circle me-2 text-success"></i>
+                                                                <?php else: ?>
+                                                                    <i class="fas fa-question-circle me-2 text-warning"></i>
+                                                                <?php endif; ?>
                                                                 <small><?= esc($quiz['title']) ?></small>
                                                                 <span class="ms-auto small text-muted"><?= esc($quiz['duration']) ?>m</span>
                                                             </div>
@@ -66,11 +128,18 @@
                                                 <!-- Assignments -->
                                                 <?php if (!empty($section['assignments'])): ?>
                                                     <?php foreach ($section['assignments'] as $assignment): ?>
-                                                        <?php $isActive = ($current_type == 'assignment' && $assignment['id'] == $current_item['id']); ?>
+                                                        <?php
+                                                        $isActive = ($current_type == 'assignment' && $assignment['id'] == $current_item['id']);
+                                                        $isAssignmentCompleted = in_array('assignment_' . $assignment['id'], $completed_items ?? []);
+                                                        ?>
                                                         <a href="<?= base_url('/student/course-player/' . $course['id'] . '/assignment/' . $assignment['id']) ?>" 
                                                            class="list-group-item list-group-item-action <?= $isActive ? 'active' : '' ?>">
                                                             <div class="d-flex align-items-center">
-                                                                <i class="fas fa-clipboard-check me-2 text-info"></i>
+                                                                <?php if ($isAssignmentCompleted): ?>
+                                                                    <i class="fas fa-check-circle me-2 text-success"></i>
+                                                                <?php else: ?>
+                                                                    <i class="fas fa-clipboard-check me-2 text-info"></i>
+                                                                <?php endif; ?>
                                                                 <small><?= esc($assignment['title']) ?></small>
                                                             </div>
                                                         </a>
@@ -96,7 +165,17 @@
                         
                         <!-- LESSON VIEW -->
                         <?php if ($current_type == 'lesson'): ?>
-                            <?php if ($current_item['lesson_type'] == 'video'): ?>
+                            
+                            <?php if (!empty($current_item['is_locked'])): ?>
+                                <div class="alert alert-secondary text-center py-5">
+                                    <i class="fas fa-lock fa-3x mb-3 text-muted"></i>
+                                    <h4>Content Locked</h4>
+                                    <p class="lead">This content will be available in <strong><?= $current_item['days_remaining'] ?> day(s)</strong>.</p>
+                                    <p class="text-muted">Unlock Date: <?= $current_item['unlock_date'] ?></p>
+                                </div>
+                            <?php else: ?>
+                                <!-- Video Player -->
+                                <?php if ($current_item['lesson_type'] == 'video'): ?>
                                 <div class="ratio ratio-16x9 bg-dark mb-4">
                                     <?php if ($current_item['video_type'] == 'youtube'): ?>
                                         <iframe src="<?= esc($current_item['video_url']) ?>" allowfullscreen></iframe>
@@ -110,7 +189,42 @@
                                     <?php endif; ?>
                                 </div>
                             <?php endif; ?>
+
+                            <!-- Document/Attachment Viewer -->
+                            <?php if ($current_item['attachment']): ?>
+                                <div class="mb-4">
+                                    <?php
+                                    $ext = strtolower($current_item['attachment_type'] ?? pathinfo($current_item['attachment'], PATHINFO_EXTENSION));
+                                    $fileUrl = base_url('/uploads/lesson_files/' . $current_item['attachment']);
+                                    ?>
+
+                                    <?php if ($ext == 'pdf'): ?>
+                                        <div class="ratio ratio-16x9 border">
+                                            <iframe src="<?= $fileUrl ?>" allowfullscreen></iframe>
+                                        </div>
+                                        <div class="mt-2 text-end">
+                                            <a href="<?= $fileUrl ?>" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-external-link-alt"></i> Open in New Tab
+                                            </a>
+                                        </div>
+                                    <?php elseif (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'])): ?>
+                                        <div class="text-center">
+                                            <img src="<?= $fileUrl ?>" class="img-fluid rounded shadow-sm" alt="Lesson Image">
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="p-4 bg-light rounded text-center border">
+                                            <i class="fas fa-file-download fa-3x text-primary mb-3"></i>
+                                            <h5>Download Course Material</h5>
+                                            <p class="text-muted">This lesson contains a downloadable resource.</p>
+                                            <a href="<?= $fileUrl ?>" class="btn btn-primary" download>
+                                                <i class="fas fa-download"></i> Download <?= strtoupper($ext) ?> File
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                             
+                            <!-- Lesson Summary (Moved to bottom) -->
                             <?php if ($current_item['summary']): ?>
                                 <div class="mb-4">
                                     <h5 class="fw-bold">Lesson Summary</h5>
@@ -120,14 +234,25 @@
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($current_item['attachment']): ?>
-                                <div class="mb-4">
-                                    <h5 class="fw-bold">Attachments</h5>
-                                    <a href="<?= base_url('/uploads/attachments/' . $current_item['attachment']) ?>" class="btn btn-outline-primary" download>
-                                        <i class="fas fa-paperclip"></i> Download Resource
-                                    </a>
-                                </div>
-                            <?php endif; ?>
+                            <!-- Mark as Complete Button -->
+                            <div class="d-flex justify-content-end mb-4">
+                                <?php
+                                $itemKey = 'lesson_' . $current_item['id'];
+                                $isCompleted = in_array($itemKey, $completed_items ?? []);
+                                ?>
+                                
+                                <?php if ($isCompleted): ?>
+                                    <button class="btn btn-success" disabled>
+                                        <i class="fas fa-check me-1"></i> Completed
+                                    </button>
+                                <?php else: ?>
+                                    <button onclick="markAsComplete(<?= $course['id'] ?>, <?= $current_item['id'] ?>)" 
+                                            class="btn btn-outline-success" id="markCompleteBtn">
+                                        <i class="fas fa-check-circle me-1"></i> Mark as Complete
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
                         <!-- QUIZ VIEW -->
                         <?php elseif ($current_type == 'quiz'): ?>
@@ -233,4 +358,68 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function markAsComplete(courseId, itemId) {
+        const btn = document.getElementById('markCompleteBtn');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+
+        fetch(`<?= base_url('/student/mark-complete') ?>/${courseId}/${itemId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Completed!',
+                        text: 'Lesson marked as complete.',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        toast: true,
+                        position: 'top-end'
+                    });
+
+                    // Update Progress Bar
+                    const progressBar = document.querySelector('.progress-bar');
+                    const progressText = document.querySelector('.card-header small.text-muted');
+                    
+                    if (progressBar) {
+                        progressBar.style.width = data.progress + '%';
+                        progressBar.setAttribute('aria-valuenow', data.progress);
+                    }
+                    if (progressText) {
+                        progressText.textContent = data.progress + '% Complete';
+                    }
+
+                    // Change button state
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="fas fa-check me-1"></i> Completed';
+                    
+                    // Show certificate button if 100%
+                    if (data.progress >= 100) {
+                        location.reload(); // Reload to show certificate button cleanly
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                    });
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+    }
+</script>
 <?= $this->endSection() ?>

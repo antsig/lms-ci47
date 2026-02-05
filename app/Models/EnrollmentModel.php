@@ -16,6 +16,8 @@ class EnrollmentModel extends BaseModel
         'course_id',
         'gifted_by',
         'expiry_date',
+        'completed_lessons',  // Added
+        'progress',  // Added
         'date_added',
         'last_modified'
     ];
@@ -213,5 +215,83 @@ class EnrollmentModel extends BaseModel
                 ->get()
                 ->getResultArray()
         ];
+    }
+
+    /**
+     * Update user progress
+     */
+    public function updateProgress($userId, $courseId, $itemId, $type = 'lesson')
+    {
+        $enrollment = $this
+            ->where('user_id', $userId)
+            ->where('course_id', $courseId)
+            ->first();
+
+        if (!$enrollment) {
+            return false;
+        }
+
+        $completedItems = [];
+        if (!empty($enrollment['completed_lessons'])) {
+            $completedItems = json_decode($enrollment['completed_lessons'], true) ?? [];
+        }
+
+        // Normalize item ID (e.g., "lesson_1", "quiz_5")
+        $newItemKey = "{$type}_{$itemId}";
+
+        // Add if not already completed (handle mixed types and legacy numeric IDs)
+        $exists = false;
+        foreach ($completedItems as $k => $item) {
+            if ($item === $newItemKey) {
+                $exists = true;
+                break;
+            }
+            // Backward compatibility: legacy numeric IDs assumed to be lessons
+            if (is_numeric($item) && $type == 'lesson' && $item == $itemId) {
+                $completedItems[$k] = $newItemKey;  // Upgrade to new format
+                $exists = true;
+                break;
+            }
+        }
+
+        if (!$exists) {
+            $completedItems[] = $newItemKey;
+        }
+
+        // Calculate progress
+        $db = \Config\Database::connect();
+
+        $totalLessons = $db
+            ->table('lessons')
+            ->join('sections', 'sections.id = lessons.section_id')
+            ->where('sections.course_id', $courseId)
+            ->countAllResults();
+
+        $totalQuizzes = $db
+            ->table('quizzes')
+            ->join('sections', 'sections.id = quizzes.section_id')
+            ->where('sections.course_id', $courseId)
+            ->countAllResults();
+
+        $totalAssignments = $db
+            ->table('assignments')
+            ->join('sections', 'sections.id = assignments.section_id')
+            ->where('sections.course_id', $courseId)
+            ->countAllResults();
+
+        $totalItems = $totalLessons + $totalQuizzes + $totalAssignments;
+
+        // Count unique completed items
+        $uniqueCompleted = count(array_unique($completedItems));
+
+        $progress = ($totalItems > 0) ? ($uniqueCompleted / $totalItems) * 100 : 0;
+        $progress = min(100, round($progress));
+
+        // Update enrollment
+        return $this->update($enrollment['id'], [
+            'completed_lessons' => json_encode(array_values($completedItems)),
+            'progress' => $progress,
+            'last_modified' => time()
+        ]);
     }
 }

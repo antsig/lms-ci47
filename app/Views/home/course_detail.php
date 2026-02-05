@@ -10,7 +10,7 @@
             <div class="card mb-4">
                 <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                      class="card-img-top" alt="<?= esc($course['title']) ?>"
-                     onerror="this.src='https://via.placeholder.com/800x400/4F46E5/ffffff?text=Course+Image'">
+                     onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                 <div class="card-body">
                     <div class="mb-3">
                         <span class="badge bg-primary"><?= esc($course['category_name'] ?? 'General') ?></span>

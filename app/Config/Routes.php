@@ -49,6 +49,8 @@ $routes->group('student', ['filter' => 'auth'], function ($routes) {
     $routes->get('wishlist/remove/(:num)', 'Student::remove_from_wishlist/$1');
     $routes->post('quiz/submit/(:num)', 'Student::submit_quiz/$1');
     $routes->post('assignment/submit/(:num)', 'Student::submit_assignment/$1');
+    $routes->get('mark-complete/(:num)/(:num)', 'Student::mark_complete/$1/$2');
+    $routes->get('certificate/(:num)', 'Student::certificate/$1');
 });
 
 // ==================== INSTRUCTOR ROUTES ====================

@@ -431,9 +431,14 @@ class Admin extends BaseController
      */
     public function create_course()
     {
+        // Fetch certificates
+        $certificateModel = new \App\Models\CertificateModel();
+        $certificates = $certificateModel->findAll();
+
         $data = [
             'title' => 'Create New Course',
             'categories' => $this->categoryModel->getCategoryHierarchy(),
+            'certificates' => $certificates,
             'validation' => \Config\Services::validation()
         ];
 
@@ -476,6 +481,7 @@ class Admin extends BaseController
             'description' => $this->request->getPost('description'),
             'outcomes' => $this->request->getPost('outcomes'),
             'requirements' => $this->request->getPost('requirements'),
+            'certificate_id' => $this->request->getPost('certificate_id'),
             'user_id' => $userId,
             'status' => 'active'  // Admin created courses are active by default? Or pending? Let's say active.
         ];
@@ -510,10 +516,15 @@ class Admin extends BaseController
 
         // Admin can edit ANY course, no ownership check needed.
 
+        // Fetch certificates
+        $certificateModel = new \App\Models\CertificateModel();
+        $certificates = $certificateModel->findAll();
+
         $data = [
             'title' => 'Edit Course',
             'course' => $course,
             'categories' => $this->categoryModel->getCategoryHierarchy(),
+            'certificates' => $certificates,
             'validation' => \Config\Services::validation()
         ];
 
@@ -550,7 +561,8 @@ class Admin extends BaseController
             'short_description' => $this->request->getPost('short_description'),
             'description' => $this->request->getPost('description'),
             'outcomes' => $this->request->getPost('outcomes'),
-            'requirements' => $this->request->getPost('requirements')
+            'requirements' => $this->request->getPost('requirements'),
+            'certificate_id' => $this->request->getPost('certificate_id')
         ];
 
         // Handle thumbnail upload
@@ -608,6 +620,7 @@ class Admin extends BaseController
             'video_url' => $this->request->getPost('video_url'),
             'duration' => $this->request->getPost('duration'),
             'summary' => $this->request->getPost('summary'),
+            'drip_days' => $this->request->getPost('drip_days') ?? 0,
             'is_free' => $this->request->getPost('is_free') ? 1 : 0
         ];
 
@@ -693,7 +706,7 @@ class Admin extends BaseController
         // 2. Enroll Student
         // Check if already enrolled to avoid duplicates
         if (!$this->enrollmentModel->isEnrolled($payment['user_id'], $payment['course_id'])) {
-            $this->enrollmentModel->enroll($payment['user_id'], $payment['course_id']);
+            $this->enrollmentModel->enrollUser($payment['user_id'], $payment['course_id']);
         }
 
         return redirect()->back()->with('success', 'Payment approved and student enrolled.');

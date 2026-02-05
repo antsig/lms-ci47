@@ -39,7 +39,7 @@
                 <div class="col-md-2 text-center">
                     <img src="<?= base_url('/uploads/user_images/' . ($user['image'] ?? 'default.jpg')) ?>" 
                          class="rounded-circle img-fluid" style="width: 100px; height: 100px; object-fit: cover;"
-                         onerror="this.src='https://via.placeholder.com/100/4F46E5/ffffff?text=User'">
+                         onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                 </div>
                 <div class="col-md-10">
                     <label class="form-label">Profile Photo</label>

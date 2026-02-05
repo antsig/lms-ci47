@@ -40,7 +40,7 @@
                             <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                  class="card-img-top" alt="<?= esc($course['title']) ?>"
                                  style="height: 180px; object-fit: cover;"
-                                 onerror="this.src='https://via.placeholder.com/300x180/4F46E5/ffffff?text=Course'">
+                                 onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                             <div class="card-body">
                                 <span class="badge bg-primary mb-2"><?= esc($course['category_name'] ?? 'General') ?></span>
                                 <h6 class="card-title"><?= esc($course['title']) ?></h6>

@@ -8,7 +8,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold">Edit Course: <?= esc($course['title']) ?> (Admin Mode)</h4>
-    <a href="<?= base_url('/course/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
+    <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
         <i class="fas fa-eye"></i> Preview
     </a>
 </div>
@@ -235,6 +235,21 @@
                                 <?php endif; ?>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label">Certificate Template</label>
+                                <select class="form-select" name="certificate_id">
+                                    <option value="">No Certificate</option>
+                                    <?php if (!empty($certificates)): ?>
+                                        <?php foreach ($certificates as $cert): ?>
+                                            <option value="<?= $cert['id'] ?>" <?= isset($course['certificate_id']) && $course['certificate_id'] == $cert['id'] ? 'selected' : '' ?>>
+                                                <?= esc($cert['title']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <small class="text-muted">Select a certificate template to be awarded upon completion.</small>
+                            </div>
+
                             <button type="submit" class="btn btn-primary w-100">Update Course Settings</button>
                         </form>
                     </div>
@@ -315,6 +330,17 @@
                     <div class="mb-3">
                         <label class="form-label">Description / Summary</label>
                         <textarea class="form-control" name="summary" rows="3"></textarea>
+                    </div>
+
+                    <!-- Drip Content -->
+                    <div class="mb-3" id="dripDaysField">
+                        <label class="form-label">Drip Content (Unlock Schedule)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="number" class="form-control" name="drip_days" min="0" value="0">
+                            <span class="input-group-text">Days after enrollment</span>
+                        </div>
+                        <small class="text-muted">Set to 0 for immediate access.</small>
                     </div>
 
                     <div class="mb-3">

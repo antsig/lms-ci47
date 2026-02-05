@@ -68,7 +68,7 @@
                         <div class="card course-card h-100">
                             <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                  class="card-img-top" alt="<?= esc($course['title']) ?>"
-                                 onerror="this.src='https://via.placeholder.com/400x200/4F46E5/ffffff?text=Course'">
+                                 onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                             <div class="card-body">
                                 <div class="mb-2">
                                     <span class="badge bg-primary"><?= esc($course['category_name'] ?? 'General') ?></span>
@@ -133,7 +133,7 @@
                         <div class="card course-card h-100">
                             <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                  class="card-img-top" alt="<?= esc($course['title']) ?>"
-                                 onerror="this.src='https://via.placeholder.com/300x150/4F46E5/ffffff?text=Course'">
+                                 onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                             <div class="card-body">
                                 <h6 class="card-title course-title"><?= esc($course['title']) ?></h6>
                                 <p class="text-muted small course-instructor">
