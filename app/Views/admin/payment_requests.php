@@ -20,6 +20,7 @@
                             <th>Student</th>
                             <th>Course</th>
                             <th>Amount</th>
+                            <th>Status</th>
                             <th>Method</th>
                             <th>Proof</th>
                             <th>Date</th>
@@ -37,10 +38,17 @@
                                 <td><?= esc($payment['course_title']) ?></td>
                                 <td class="fw-bold text-primary">Rp <?= number_format($payment['amount']) ?></td>
                                 <td>
+                                    <?php if ($payment['payment_status'] == 'verification_pending'): ?>
+                                        <span class="badge bg-warning text-dark">Verifying</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Pending</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
                                     <?php if ($payment['payment_method'] == 'qris'): ?>
                                         <span class="badge bg-info text-dark">QRIS</span>
                                     <?php else: ?>
-                                        <span class="badge bg-secondary">Manual</span>
+                                        <span class="badge bg-light text-dark border">Manual</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -49,16 +57,34 @@
                                             <i class="fas fa-image"></i> View
                                         </a>
                                     <?php else: ?>
-                                        <span class="text-muted">No File</span>
+                                        <span class="text-muted small">No Proof</span>
                                     <?php endif; ?>
                                 </td>
                                 <td><?= date('d M Y H:i', $payment['date_added']) ?></td>
                                 <td>
-                                    <a href="<?= base_url('/admin/approve-payment/' . $payment['id']) ?>" 
-                                       class="btn btn-sm btn-success"
-                                       onclick="return confirm('Approve this payment and enroll student?');">
-                                        <i class="fas fa-check"></i> Approve
-                                    </a>
+                                    <?php if ($payment['payment_status'] == 'verification_pending'): ?>
+                                        <a href="<?= base_url('/admin/approve-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-success"
+                                           onclick="return confirm('Approve this payment and enroll student?');">
+                                            <i class="fas fa-check"></i> Approve
+                                        </a>
+                                        <a href="<?= base_url('/admin/reject-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Reject this payment?');">
+                                            <i class="fas fa-times"></i> Reject
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= base_url('/admin/approve-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-outline-success"
+                                           onclick="return confirm('Force approve this payment without proof?');">
+                                            <i class="fas fa-check"></i> Approve
+                                        </a>
+                                        <a href="<?= base_url('/admin/reject-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Reject this payment request?');">
+                                            <i class="fas fa-times"></i> Reject
+                                        </a>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

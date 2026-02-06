@@ -366,10 +366,12 @@
                     $auth = new \App\Libraries\Auth();
                     if ($auth->isLoggedIn()):
                         $user = $auth->getUser();
+                        // Defensive check: if user is null (deleted?), fallback to 'User' or logout
+                        $firstName = $user['first_name'] ?? 'User';
                         ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> <?= esc($user['first_name']) ?>
+                                <i class="fas fa-user-circle"></i> <?= esc($firstName) ?>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <?php if ($auth->isAdmin()): ?>
@@ -396,25 +398,6 @@
             </div>
         </div>
     </nav>
-
-    <!-- Flash Messages -->
-    <?php if (session()->has('success')): ?>
-        <div class="container mt-3">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> <?= session('success') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
-    
-    <?php if (session()->has('error')): ?>
-        <div class="container mt-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle"></i> <?= session('error') ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <!-- Main Content -->
     <?= $this->renderSection('content') ?>
@@ -454,9 +437,39 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- jQuery (optional, for AJAX) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Global Flash Messages to SweetAlert2
+        <?php if (session()->has('success')): ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '<?= esc(session('success')) ?>',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        <?php endif; ?>
+
+        <?php if (session()->has('error')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '<?= esc(session('error')) ?>',
+            });
+        <?php endif; ?>
+        
+        <?php if (session()->has('errors')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: '<?= implode('<br>', array_map('esc', session('errors'))) ?>',
+            });
+        <?php endif; ?>
+    </script>
     
     <?= $this->renderSection('scripts') ?>
 </body>

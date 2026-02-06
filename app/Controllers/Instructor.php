@@ -131,7 +131,7 @@ class Instructor extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/thumbnails', $newName);
             $data['thumbnail'] = $newName;
         }
 
@@ -208,8 +208,14 @@ class Instructor extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/thumbnails', $newName);
             $data['thumbnail'] = $newName;
+
+            // Delete old thumbnail
+            $oldCourse = $this->courseModel->find($courseId);
+            if (!empty($oldCourse['thumbnail']) && file_exists(FCPATH . 'uploads/thumbnails/' . $oldCourse['thumbnail'])) {
+                unlink(FCPATH . 'uploads/thumbnails/' . $oldCourse['thumbnail']);
+            }
         }
 
         $this->courseModel->updateCourse($courseId, $data);
@@ -266,7 +272,7 @@ class Instructor extends BaseController
         $attachment = $this->request->getFile('attachment');
         if ($attachment && $attachment->isValid()) {
             $newName = $attachment->getRandomName();
-            $attachment->move(WRITEPATH . '../public/uploads/lesson_files', $newName);
+            $attachment->move(FCPATH . 'uploads/lesson_files', $newName);
             $data['attachment'] = $newName;
         }
 
@@ -320,5 +326,61 @@ class Instructor extends BaseController
         ];
 
         return view('instructor/revenue', $data);
+    }
+
+    /**
+     * Approve Payment
+     */
+    public function approve_payment($paymentId)
+    {
+        $payment = $this->paymentModel->find($paymentId);
+        if (!$payment) {
+            return redirect()->back()->with('error', 'Payment not found');
+        }
+
+        // Verify ownership
+        $course = $this->courseModel->find($payment['course_id']);
+        if ($course['user_id'] != $this->auth->getUserId()) {
+            return redirect()->back()->with('error', 'Unauthorized action');
+        }
+
+        // Update Payment Status
+        $this->paymentModel->update($paymentId, [
+            'payment_status' => 'paid',
+            'last_modified' => time()
+        ]);
+
+        // Create Enrollment if not exists
+        $enrollmentModel = new \App\Models\EnrollmentModel();
+        if (!$enrollmentModel->isEnrolled($payment['user_id'], $payment['course_id'])) {
+            $enrollmentModel->enrollUser($payment['user_id'], $payment['course_id']);
+        }
+
+        return redirect()->back()->with('success', 'Payment approved and student enrolled.');
+    }
+
+    /**
+     * Reject Payment
+     */
+    public function reject_payment($paymentId)
+    {
+        $payment = $this->paymentModel->find($paymentId);
+        if (!$payment) {
+            return redirect()->back()->with('error', 'Payment not found');
+        }
+
+        // Verify ownership
+        $course = $this->courseModel->find($payment['course_id']);
+        if ($course['user_id'] != $this->auth->getUserId()) {
+            return redirect()->back()->with('error', 'Unauthorized action');
+        }
+
+        // Update Payment Status
+        $this->paymentModel->update($paymentId, [
+            'payment_status' => 'failed',
+            'last_modified' => time()
+        ]);
+
+        return redirect()->back()->with('success', 'Payment rejected.');
     }
 }

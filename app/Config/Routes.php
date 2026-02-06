@@ -13,6 +13,7 @@ $routes->get('/search', 'HomeController::search');
 $routes->get('/about', 'HomeController::about');
 $routes->get('/contact', 'HomeController::contact');
 $routes->post('/contact/submit', 'HomeController::process_contact');
+$routes->get('/dashboard', 'HomeController::dashboard');
 
 // ==================== AUTHENTICATION ROUTES ====================
 $routes->group('login', function ($routes) {
@@ -80,6 +81,10 @@ $routes->group('instructor', ['filter' => 'role:instructor'], function ($routes)
     $routes->get('edit-assignment/(:num)', 'AssignmentController::edit_assignment/$1');
     $routes->post('update-assignment/(:num)', 'AssignmentController::update_assignment/$1');
     $routes->get('delete-assignment/(:num)', 'AssignmentController::delete_assignment/$1');
+
+    // Payment Actions
+    $routes->get('approve-payment/(:num)', 'Instructor::approve_payment/$1');
+    $routes->get('reject-payment/(:num)', 'Instructor::reject_payment/$1');
 });
 
 // ==================== PAYMENT ROUTES ====================
@@ -89,6 +94,7 @@ $routes->group('payment', ['filter' => 'auth'], function ($routes) {
     $routes->get('instruction/(:num)', 'PaymentController::instruction/$1');
     $routes->post('submit-proof', 'PaymentController::submit_proof');
     $routes->get('success', 'PaymentController::success');
+    $routes->get('history', 'PaymentController::history');  // New Route
 });
 
 // ==================== ADMIN ROUTES ====================
@@ -119,8 +125,10 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     $routes->post('update-course/(:num)', 'Admin::update_course/$1');
     $routes->post('add-section/(:num)', 'Admin::add_section/$1');
     $routes->post('add-lesson/(:num)/(:num)', 'Admin::add_lesson/$1/$2');
+    $routes->post('update-lesson/(:num)', 'Admin::update_lesson/$1');
     $routes->get('delete-section/(:num)', 'Admin::delete_section/$1');
     $routes->get('delete-lesson/(:num)', 'Admin::delete_lesson/$1');
+    $routes->get('get-lesson/(:num)', 'Admin::get_lesson/$1');
     $routes->get('approve-course/(:num)', 'Admin::approve_course/$1');
     $routes->get('course-status/(:num)/(:alpha)', 'Admin::change_course_status/$1/$2');
     $routes->get('delete-course/(:num)', 'Admin::delete_course/$1');
@@ -131,8 +139,11 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
 
     // Revenue & Reports
     $routes->get('revenue', 'Admin::revenue');
+    $routes->get('payment_history', 'PaymentController::admin_history');
+    $routes->get('payment-detail/(:num)', 'PaymentController::admin_detail/$1');  // New Route
     $routes->get('payment-requests', 'Admin::payment_requests');
     $routes->get('approve-payment/(:num)', 'Admin::approve_payment/$1');
+    $routes->get('reject-payment/(:num)', 'Admin::reject_payment/$1');
 
     // Settings
     $routes->get('settings', 'Admin::settings');

@@ -194,4 +194,22 @@ class HomeController extends BaseController
 
         return redirect()->back()->with('success', 'Thank you for contacting us. We will get back to you soon.');
     }
+
+    /**
+     * Dashboard redirect
+     */
+    public function dashboard()
+    {
+        if (!$this->auth->isLoggedIn()) {
+            return redirect()->to('/login');
+        }
+
+        if ($this->auth->isAdmin()) {
+            return redirect()->to('/admin');
+        } elseif ($this->auth->isInstructor()) {
+            return redirect()->to('/instructor');
+        } else {
+            return redirect()->to('/student');
+        }
+    }
 }

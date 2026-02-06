@@ -96,7 +96,8 @@ class PaymentModel extends BaseModel
             $builder = $db
                 ->table($this->table . ' p')
                 ->join('courses c', 'c.id = p.course_id')
-                ->where('FIND_IN_SET(' . $instructorId . ', c.user_id) >', 0);
+                ->where('FIND_IN_SET(' . $instructorId . ', c.user_id) >', 0)
+                ->where('p.payment_status', 'paid');  // Only paid
 
             if ($startDate) {
                 $builder->where('p.date_added >=', $startDate);
@@ -117,6 +118,9 @@ class PaymentModel extends BaseModel
                     ->getResultArray()
             ];
         }
+
+        // Admin Revenue Stats
+        $builder->where('payment_status', 'paid');  // Only paid
 
         return [
             'total_revenue' => $builder->selectSum('amount')->get()->getRow()->amount ?? 0,

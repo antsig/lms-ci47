@@ -12,5 +12,7 @@ class DatabaseSeeder extends Seeder
         $this->call('UserSeeder');
         $this->call('CategorySeeder');
         $this->call('CourseSeeder');
+        $this->call('SettingsSeeder');
+        $this->call('CompleteCourseSeeder');
     }
 }

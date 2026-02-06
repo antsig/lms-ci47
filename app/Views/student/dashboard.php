@@ -1,28 +1,7 @@
 <?= $this->extend('layouts/dashboard') ?>
 
 <?= $this->section('sidebar') ?>
-<a href="<?= base_url('/student') ?>" class="active">
-    <i class="fas fa-tachometer-alt"></i> Dashboard
-</a>
-<a href="<?= base_url('/student/my-courses') ?>">
-    <i class="fas fa-book"></i> My Courses
-</a>
-<a href="<?= base_url('/student/wishlist') ?>">
-    <i class="fas fa-heart"></i> Wishlist
-</a>
-<a href="<?= base_url('/student/profile') ?>">
-    <i class="fas fa-user"></i> Profile
-</a>
-<a href="<?= base_url('/student/change-password') ?>">
-    <i class="fas fa-key"></i> Change Password
-</a>
-<hr>
-<a href="<?= base_url('/') ?>">
-    <i class="fas fa-home"></i> Back to Home
-</a>
-<a href="<?= base_url('/login/logout') ?>">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
+    <?= $this->include('student/sidebar') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

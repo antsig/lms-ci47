@@ -67,7 +67,7 @@
 
 <!-- Secondary Stats -->
 <div class="row mb-4">
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-2">Students</h6>
@@ -75,7 +75,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-2">Instructors</h6>
@@ -83,11 +83,19 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card">
             <div class="card-body">
                 <h6 class="text-muted mb-2">Pending Courses</h6>
                 <h4 class="fw-bold text-warning"><?= $pending_courses ?? 0 ?></h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted mb-2">Pending Payments</h6>
+                <h4 class="fw-bold text-danger"><?= $pending_payments ?? 0 ?></h4>
             </div>
         </div>
     </div>
@@ -139,6 +147,57 @@
                     </div>
                 <?php else: ?>
                     <p class="text-muted text-center py-4">No pending courses</p>
+                <?php endif; ?>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="col-lg-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-danger">Pending Payment Approvals</h5>
+                    <a href="<?= base_url('/admin/payment-requests') ?>" class="btn btn-sm btn-outline-danger">View All</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <?php if (!empty($pending_payments_list)): ?>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach (array_slice($pending_payments_list, 0, 5) as $pay): ?>
+                                    <tr>
+                                        <td>
+                                            <span class="font-monospace small bg-light px-2 py-1 rounded">#<?= esc($pay['transaction_id']) ?></span>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold"><?= esc($pay['first_name'] . ' ' . $pay['last_name']) ?></div>
+                                        </td>
+                                        <td><?= esc($pay['course_title']) ?></td>
+                                        <td class="fw-bold">Rp <?= number_format($pay['amount']) ?></td>
+                                        <td>
+                                            <a href="<?= base_url('admin/payment-detail/' . $pay['id']) ?>" class="btn btn-sm btn-primary">
+                                                Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <p class="text-muted text-center py-4">No pending payments</p>
                 <?php endif; ?>
             </div>
         </div>

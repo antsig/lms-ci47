@@ -340,11 +340,22 @@ class Student extends BaseController
 
             // Check if user answered
             if (isset($userAnswers[$qId])) {
-                $userAns = (int) $userAnswers[$qId];
-                $storedAnswers[$qId] = $userAns;
+                // Handle different question types
+                if (isset($question['type']) && $question['type'] == 'essay') {
+                    $userAns = $userAnswers[$qId];  // Keep as string
+                    $storedAnswers[$qId] = $userAns;
 
-                if (in_array($userAns, $correctIndices)) {
-                    $correctCount++;
+                    // Essay grading logic:
+                    // Currently we do NOT auto-grade essays.
+                    // They count as 0 correct towards the immediate score.
+                    // Future: Add instructor grading.
+                } else {
+                    $userAns = (int) $userAnswers[$qId];  // Multiple choice uses indices
+                    $storedAnswers[$qId] = $userAns;
+
+                    if (in_array($userAns, $correctIndices)) {
+                        $correctCount++;
+                    }
                 }
             } else {
                 $storedAnswers[$qId] = null;

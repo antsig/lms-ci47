@@ -289,7 +289,24 @@
                 </button>
                 <h4 class="mb-0 d-inline-block"><?= esc($title ?? 'Dashboard') ?></h4>
             </div>
-            <div class="dropdown">
+            <div class="d-flex align-items-center">
+                <!-- Notifications -->
+                <div class="dropdown me-3">
+                    <a class="nav-link text-muted position-relative" href="#" role="button" data-bs-toggle="dropdown" id="notifDropdown">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifCount" style="display: none;">
+                            0
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notifDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notifList">
+                        <li><h6 class="dropdown-header">Notifications</h6></li>
+                        <li><hr class="dropdown-divider my-0"></li>
+                        <!-- Items injected via JS -->
+                        <li class="text-center py-3 text-muted small" id="noNotifMsg">No new notifications</li>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
                 <?php
                 $auth = new \App\Libraries\Auth();
                 $user = $auth->getUser();
@@ -305,25 +322,9 @@
                 </ul>
             </div>
         </div>
+    </div>
 
-        <!-- Flash Messages -->
-        <?php if (session()->has('success')): ?>
-            <div class="content-wrapper">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle"></i> <?= session('success') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </div>
-        <?php endif; ?>
-        
-        <?php if (session()->has('error')): ?>
-            <div class="content-wrapper">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i> <?= session('error') ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </div>
-        <?php endif; ?>
+
 
         <!-- Page Content -->
         <div class="content-wrapper">
@@ -344,6 +345,101 @@
         });
     </script>
     
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Global Flash Messages to SweetAlert2
+        <?php if (session()->has('success')): ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '<?= esc(session('success')) ?>',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        <?php endif; ?>
+
+        <?php if (session()->has('error')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '<?= esc(session('error')) ?>',
+            });
+        <?php endif; ?>
+        
+        <?php if (session()->has('errors')): ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: '<?= implode('<br>', array_map('esc', session('errors'))) ?>',
+            });
+        <?php endif; ?>
+
+        // Notification Polling
+        function fetchNotifications() {
+            fetch('<?= base_url('api/notifications') ?>')
+                .then(response => response.json())
+                .then(data => {
+                    const countBadge = document.getElementById('notifCount');
+                    const list = document.getElementById('notifList');
+                    const noMsg = document.getElementById('noNotifMsg');
+                    
+                    // Update Badge
+                    if (data.count > 0) {
+                        countBadge.textContent = data.count > 99 ? '99+' : data.count;
+                        countBadge.style.display = 'block';
+                    } else {
+                        countBadge.style.display = 'none';
+                    }
+
+                    // Update List (Simplified for demo)
+                    // In real app, diffing or React/Vue is better, but here we just rebuild if count changed or first load
+                    // Ideally we check if list content needs update. For now, simple rebuild if ANY notification.
+                    
+                    // Clear existing items except header/footer (crudely)
+                    // Actually, let's just keep it simple: clear all <li> after divider
+                    const items = list.querySelectorAll('li.notif-item');
+                    items.forEach(el => el.remove());
+
+                    if (data.notifications.length > 0) {
+                        if(noMsg) noMsg.style.display = 'none';
+                        
+                        data.notifications.forEach(notif => {
+                            const li = document.createElement('li');
+                            li.className = 'notif-item';
+                            li.innerHTML = `
+                                <a class="dropdown-item py-2 border-bottom ${notif.is_read == 0 ? 'bg-light' : ''}" href="#" onclick="markRead(${notif.id}, '${notif.url}')">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <strong class="mb-1 small">${notif.title}</strong>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Just now</small> 
+                                    </div>
+                                    <p class="mb-1 small text-muted text-truncate" style="max-width: 250px;">${notif.message}</p>
+                                </a>
+                            `;
+                            list.appendChild(li);
+                        });
+                    } else {
+                        if(noMsg) noMsg.style.display = 'block';
+                    }
+                })
+                .catch(err => console.error('Notif Error:', err));
+        }
+
+        function markRead(id, url) {
+            fetch('<?= base_url('api/notifications/mark-read') ?>/' + id, { method: 'POST' })
+                .then(() => {
+                    if (url && url !== 'null') window.location.href = '<?= base_url() ?>/' + url;
+                });
+        }
+
+        // Poll every 10 seconds
+        setInterval(fetchNotifications, 10000);
+        // Initial call
+        document.addEventListener('DOMContentLoaded', fetchNotifications);
+    </script>
+
     <?= $this->renderSection('scripts') ?>
 </body>
 </html>

@@ -51,10 +51,19 @@ class Admin extends BaseController
             'total_courses' => $this->courseModel->countAll(),
             'active_courses' => $this->courseModel->where('status', 'active')->countAllResults(),
             'pending_courses' => $this->courseModel->where('status', 'pending')->countAllResults(),
+            'pending_payments' => $this->paymentModel->whereIn('payment_status', ['pending', 'verification_pending'])->countAllResults(),
             'total_enrollments' => $this->enrollmentModel->countAll(),
             'revenue_stats' => $this->paymentModel->getRevenueStats(),
             'recent_enrollments' => $this->enrollmentModel->getRecentEnrollments(10),
-            'pending_courses_list' => $this->courseModel->getPendingCourses()
+            'pending_courses_list' => $this->courseModel->getPendingCourses(),
+            'pending_payments_list' => $this
+                ->paymentModel
+                ->select('payments.*, users.first_name, users.last_name, courses.title as course_title')
+                ->join('users', 'users.id = payments.user_id')
+                ->join('courses', 'courses.id = payments.course_id')
+                ->whereIn('payment_status', ['pending', 'verification_pending'])
+                ->orderBy('date_added', 'ASC')
+                ->findAll()
         ];
 
         return view('admin/dashboard', $data);
@@ -228,7 +237,7 @@ class Admin extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/category_thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/category_thumbnails', $newName);
             $data['thumbnail'] = $newName;
         }
 
@@ -256,8 +265,14 @@ class Admin extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/category_thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/category_thumbnails', $newName);
             $data['thumbnail'] = $newName;
+
+            // Delete old thumbnail
+            $oldCategory = $this->categoryModel->find($categoryId);
+            if (!empty($oldCategory['thumbnail']) && file_exists(FCPATH . 'uploads/category_thumbnails/' . $oldCategory['thumbnail'])) {
+                unlink(FCPATH . 'uploads/category_thumbnails/' . $oldCategory['thumbnail']);
+            }
         }
 
         $this->categoryModel->updateCategory($categoryId, $data);
@@ -379,7 +394,16 @@ class Admin extends BaseController
         }
 
         $stats = $this->paymentModel->getRevenueStats($startDate, $endDate);
-        $payments = $this->paymentModel->orderBy('date_added', 'DESC')->findAll();
+        $stats = $this->paymentModel->getRevenueStats($startDate, $endDate);
+
+        // Fix: Join users and courses to get names and titles
+        $payments = $this
+            ->paymentModel
+            ->select('payments.*, users.first_name, users.last_name, courses.title as course_title')
+            ->join('users', 'users.id = payments.user_id')
+            ->join('courses', 'courses.id = payments.course_id')
+            ->orderBy('payments.date_added', 'DESC')
+            ->findAll();
 
         $data = [
             'title' => 'Revenue Report',
@@ -490,7 +514,7 @@ class Admin extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/thumbnails', $newName);
             $data['thumbnail'] = $newName;
         }
 
@@ -569,8 +593,14 @@ class Admin extends BaseController
         $thumbnail = $this->request->getFile('thumbnail');
         if ($thumbnail && $thumbnail->isValid()) {
             $newName = $thumbnail->getRandomName();
-            $thumbnail->move(WRITEPATH . '../public/uploads/thumbnails', $newName);
+            $thumbnail->move(FCPATH . 'uploads/thumbnails', $newName);
             $data['thumbnail'] = $newName;
+
+            // Delete old thumbnail
+            $oldCourse = $this->courseModel->find($courseId);
+            if (!empty($oldCourse['thumbnail']) && file_exists(FCPATH . 'uploads/thumbnails/' . $oldCourse['thumbnail'])) {
+                unlink(FCPATH . 'uploads/thumbnails/' . $oldCourse['thumbnail']);
+            }
         }
 
         $this->courseModel->updateCourse($courseId, $data);
@@ -620,7 +650,8 @@ class Admin extends BaseController
             'video_url' => $this->request->getPost('video_url'),
             'duration' => $this->request->getPost('duration'),
             'summary' => $this->request->getPost('summary'),
-            'drip_days' => $this->request->getPost('drip_days') ?? 0,
+            'summary' => $this->request->getPost('summary'),
+            'video_progression' => $this->request->getPost('video_progression') ?? 0,
             'is_free' => $this->request->getPost('is_free') ? 1 : 0
         ];
 
@@ -628,7 +659,7 @@ class Admin extends BaseController
         $attachment = $this->request->getFile('attachment');
         if ($attachment && $attachment->isValid()) {
             $newName = $attachment->getRandomName();
-            $attachment->move(WRITEPATH . '../public/uploads/lesson_files', $newName);
+            $attachment->move(FCPATH . 'uploads/lesson_files', $newName);
             $data['attachment'] = $newName;
         }
 
@@ -664,6 +695,65 @@ class Admin extends BaseController
         return redirect()->back()->with('error', 'Failed to delete lesson');
     }
 
+    /**
+     * Get lesson details (AJAX)
+     */
+    public function get_lesson($lessonId)
+    {
+        $lesson = $this->lessonModel->find($lessonId);
+        if ($lesson) {
+            return $this->response->setJSON($lesson);
+        }
+        return $this->response->setStatusCode(404)->setJSON(['error' => 'Lesson not found']);
+    }
+
+    /**
+     * Update lesson
+     */
+    public function update_lesson($lessonId)
+    {
+        $rules = [
+            'title' => 'required',
+            'lesson_type' => 'required'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'title' => $this->request->getPost('title'),
+            'lesson_type' => $this->request->getPost('lesson_type'),
+            'video_type' => $this->request->getPost('video_type'),
+            'video_url' => $this->request->getPost('video_url'),
+            'duration' => $this->request->getPost('duration'),
+            'summary' => $this->request->getPost('summary'),
+            // 'drip_days' is now 'video_progression' (percentage)
+            'video_progression' => $this->request->getPost('video_progression') ?? 0,
+            'is_free' => $this->request->getPost('is_free') ? 1 : 0
+        ];
+
+        // Handle attachment upload
+        $attachment = $this->request->getFile('attachment');
+        if ($attachment && $attachment->isValid()) {
+            $newName = $attachment->getRandomName();
+            $attachment->move(FCPATH . 'uploads/lesson_files', $newName);
+            $data['attachment'] = $newName;
+
+            // Delete old attachment
+            $oldLesson = $this->lessonModel->find($lessonId);
+            if (!empty($oldLesson['attachment']) && file_exists(FCPATH . 'uploads/lesson_files/' . $oldLesson['attachment'])) {
+                unlink(FCPATH . 'uploads/lesson_files/' . $oldLesson['attachment']);
+            }
+        }
+
+        if ($this->lessonModel->updateLesson($lessonId, $data)) {
+            return redirect()->back()->with('success', 'Lesson updated successfully');
+        }
+
+        return redirect()->back()->with('error', 'Failed to update lesson');
+    }
+
     // ==================== PAYMENT VERIFICATION ====================
 
     /**
@@ -678,7 +768,7 @@ class Admin extends BaseController
                 ->select('payments.*, users.first_name, users.last_name, users.email, courses.title as course_title')
                 ->join('users', 'users.id = payments.user_id')
                 ->join('courses', 'courses.id = payments.course_id')
-                ->where('payment_status', 'verification_pending')
+                ->whereIn('payment_status', ['pending', 'verification_pending'])  // Show both
                 ->orderBy('date_added', 'ASC')
                 ->findAll()
         ];
@@ -710,5 +800,25 @@ class Admin extends BaseController
         }
 
         return redirect()->back()->with('success', 'Payment approved and student enrolled.');
+    }
+
+    /**
+     * Reject Payment
+     */
+    public function reject_payment($paymentId)
+    {
+        $payment = $this->paymentModel->find($paymentId);
+
+        if (!$payment) {
+            return redirect()->back()->with('error', 'Payment not found');
+        }
+
+        // Update Payment Status to cancelled or failed
+        $this->paymentModel->update($paymentId, [
+            'payment_status' => 'failed',  // or cancelled
+            'last_modified' => time()
+        ]);
+
+        return redirect()->back()->with('success', 'Payment rejected.');
     }
 }

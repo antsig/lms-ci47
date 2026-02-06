@@ -52,10 +52,10 @@
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between mb-1">
                                         <small class="text-muted">Progress</small>
-                                        <small class="text-muted">0%</small>
+                                        <small class="text-muted"><?= $course['progress'] ?? 0 ?>%</small>
                                     </div>
                                     <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?= $course['progress'] ?? 0 ?>%"></div>
                                     </div>
                                 </div>
                                 
@@ -63,9 +63,16 @@
                                     <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" class="btn btn-primary btn-sm flex-grow-1">
                                         <i class="fas fa-play"></i> Continue
                                     </a>
-                                    <a href="<?= base_url('/course/' . $course['id']) ?>" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
+                                    
+                                    <?php if (($course['progress'] ?? 0) >= 100): ?>
+                                        <a href="<?= base_url('/student/certificate/' . $course['id']) ?>" class="btn btn-success btn-sm" title="Download Certificate">
+                                            <i class="fas fa-certificate"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <button class="btn btn-outline-secondary btn-sm" disabled title="Complete course to download certificate">
+                                            <i class="fas fa-certificate"></i>
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

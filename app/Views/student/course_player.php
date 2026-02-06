@@ -49,6 +49,11 @@
     <div class="row">
         <!-- Sidebar - Curriculum -->
         <div class="col-lg-3 mb-4">
+            <div class="mb-3">
+                 <a href="<?= base_url('/student/my-courses') ?>" class="btn btn-outline-secondary btn-sm w-100">
+                     <i class="fas fa-arrow-left me-1"></i> Back to My Courses
+                 </a>
+            </div>
             <div class="card h-100 sticky-sidebar">
                 <div class="card-header bg-white">
                     <h5 class="mb-0 fw-bold"><?= esc($course['title']) ?></h5>
@@ -178,7 +183,42 @@
                                 <?php if ($current_item['lesson_type'] == 'video'): ?>
                                 <div class="ratio ratio-16x9 bg-dark mb-4">
                                     <?php if ($current_item['video_type'] == 'youtube'): ?>
-                                        <iframe src="<?= esc($current_item['video_url']) ?>" allowfullscreen></iframe>
+                                        <?php
+                                        $videoUrl = $current_item['video_url'];
+                                        // Auto-convert watch/short URLs to embed format
+                                        if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $videoUrl, $match)) {
+                                            $videoUrl = 'https://www.youtube.com/embed/' . $match[1];
+                                        }
+                                        ?>
+                                        if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $videoUrl, $match)) {
+                                            $videoUrl = 'https://www.youtube.com/embed/' . $match[1] . '?enablejsapi=1'; // Enable JS API
+                                            $youtubeId = $match[1];
+                                        }
+                                        ?>
+                                        <iframe id="yt-player-<?= $current_item['id'] ?>" src="<?= esc($videoUrl) ?>" allowfullscreen></iframe>
+                                        <script>
+                                            // Queue YouTube Init
+                                            window.addEventListener('load', function() {
+                                                if (typeof YT !== 'undefined' && YT.Player) {
+                                                    new YT.Player('yt-player-<?= $current_item['id'] ?>', {
+                                                        events: {
+                                                            'onStateChange': function(event) {
+                                                                if (event.data == YT.PlayerState.PLAYING) {
+                                                                    // Start polling
+                                                                    const player = event.target;
+                                                                    const duration = player.getDuration();
+                                                                    const timer = setInterval(() => {
+                                                                        if (typeof checkProgress === 'function') {
+                                                                            checkProgress(player.getCurrentTime(), duration);
+                                                                        }
+                                                                    }, 1000);
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        </script>
                                     <?php elseif ($current_item['video_type'] == 'vimeo'): ?>
                                         <iframe src="<?= esc($current_item['video_url']) ?>" allowfullscreen></iframe>
                                     <?php elseif ($current_item['video_type'] == 'html5'): ?>
@@ -276,23 +316,28 @@
                                             <div class="card-body">
                                                 <h5 class="card-title"><?= $qIndex + 1 ?>. <?= esc($question['title']) ?></h5>
                                                 
-                                                <?php
-                                                $options = json_decode($question['options'], true);
-                                                ?>
-                                                
-                                                <div class="mt-3">
-                                                    <?php foreach ($options as $oIndex => $option): ?>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" 
-                                                                   name="answers[<?= $question['id'] ?>]" 
-                                                                   id="q<?= $question['id'] ?>o<?= $oIndex ?>" 
-                                                                   value="<?= $oIndex + 1 ?>">
-                                                            <label class="form-check-label" for="q<?= $question['id'] ?>o<?= $oIndex ?>">
-                                                                <?= esc($option) ?>
-                                                            </label>
-                                                        </div>
-                                                    <?php endforeach; ?>
-                                                </div>
+                                                <?php if (isset($question['type']) && $question['type'] == 'essay'): ?>
+                                                    <div class="mt-3">
+                                                        <textarea class="form-control" name="answers[<?= $question['id'] ?>]" rows="4" placeholder="Type your answer here..." required></textarea>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <?php
+                                                    $options = json_decode($question['options'], true);
+                                                    ?>
+                                                    <div class="mt-3">
+                                                        <?php foreach ($options as $oIndex => $option): ?>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" 
+                                                                       name="answers[<?= $question['id'] ?>]" 
+                                                                       id="q<?= $question['id'] ?>o<?= $oIndex ?>" 
+                                                                       value="<?= $oIndex + 1 ?>">
+                                                                <label class="form-check-label" for="q<?= $question['id'] ?>o<?= $oIndex ?>">
+                                                                    <?= esc($option) ?>
+                                                                </label>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -362,7 +407,143 @@
 
 <?= $this->section('scripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Video Players APIs -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://player.vimeo.com/api/player.js"></script>
+
 <script>
+    // Configuration
+    const IS_LESSON = <?= $current_type == 'lesson' ? 'true' : 'false' ?>;
+    const LESSON_ID = <?= $current_type == 'lesson' ? $current_item['id'] : 'null' ?>;
+    const COURSE_ID = <?= $course['id'] ?>;
+    const VIDEO_TYPE = '<?= $current_type == 'lesson' && $current_item['lesson_type'] == 'video' ? $current_item['video_type'] : '' ?>';
+    const VIDEO_PROGRESSION = <?= $current_type == 'lesson' ? ($current_item['video_progression'] ?? 0) : 0 ?>;
+    const HAS_ATTACHMENT = <?= $current_type == 'lesson' && !empty($current_item['attachment']) ? 'true' : 'false' ?>;
+    const LESSON_TYPE = '<?= $current_type == 'lesson' ? $current_item['lesson_type'] : '' ?>';
+    
+    // State
+    let isCompleted = <?= $current_type == 'lesson' && in_array('lesson_' . $current_item['id'], $completed_items ?? []) ? 'true' : 'false' ?>;
+    let videoDuration = 0;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!IS_LESSON || isCompleted) return;
+
+        // 1. Document/Text Lesson Auto-Complete logic
+        // If it's a text lesson (no video) or just an attachment, mark complete on view
+        if (LESSON_TYPE !== 'video' || (LESSON_TYPE === 'video' && VIDEO_TYPE === '')) {
+             console.log("Document/Text lesson detected. Marking complete.");
+             // Optional: Add small delay or scroll check
+             setTimeout(triggerCompletion, 2000); 
+        }
+
+        // 2. Video Tracking
+        if (LESSON_TYPE === 'video' && VIDEO_TYPE !== '') {
+            initVideoTracking();
+        }
+    });
+
+    function initVideoTracking() {
+        if (VIDEO_TYPE === 'youtube') {
+            // YouTube is initialized via onYouTubeIframeAPIReady global function
+        } else if (VIDEO_TYPE === 'vimeo') {
+            const iframe = document.querySelector('iframe[src*="vimeo"]');
+            if (iframe) {
+                const player = new Vimeo.Player(iframe);
+                player.on('timeupdate', function(data) {
+                    checkProgress(data.seconds, data.duration);
+                });
+            }
+        } else if (VIDEO_TYPE === 'html5') {
+            const video = document.querySelector('video');
+            if (video) {
+                video.addEventListener('timeupdate', function() {
+                    checkProgress(this.currentTime, this.duration);
+                });
+            }
+        }
+    }
+
+    // Global YouTube Callback
+    window.onYouTubeIframeAPIReady = function() {
+        if (VIDEO_TYPE === 'youtube') {
+             const iframe = document.querySelector('iframe[src*="youtube"]');
+             // We need to replace iframe with API control? Or uses existing?
+             // Existing iframe usually needs enablejsapi=1. 
+             // To simplify, we rely on the iframe having enablejsapi=1 appended in view.
+             
+             // NOTE: Since the view uses simple iframe, we might need to recreate it or ensure ID.
+             // But for now, let's assume standard embedding won't easily support tracking without fully replacing with JS Player.
+             // ALTERNATIVE: Use the ID from the URL we parsed in PHP.
+        }
+    }
+    
+    // Fix for YouTube Tracking: We need to use YT.Player on the ID. 
+    // Since the view renders an iframe without ID, let's add an ID to it via JS if possible or assume simple HTML5/Vimeo first.
+    // Actually, let's try to attach to the iframe if it exists.
+    
+    function checkProgress(currentTime, duration) {
+        if (isCompleted || duration === 0) return;
+        
+        const percentage = (currentTime / duration) * 100;
+        
+        // Debug
+        // console.log(`Progress: ${percentage.toFixed(2)}% / Required: ${VIDEO_PROGRESSION}%`);
+
+        if (percentage >= VIDEO_PROGRESSION) {
+            triggerCompletion();
+        }
+    }
+
+    function triggerCompletion() {
+        if (isCompleted) return;
+        isCompleted = true; // Prevent double trigger
+        
+        console.log("Triggering auto-complete...");
+        
+        // Call the AJAX endpoint
+        fetch('<?= base_url('/student/mark-lesson-complete') ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                course_id: COURSE_ID,
+                lesson_id: LESSON_ID
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // UI Feedback
+                const btn = document.getElementById('markCompleteBtn');
+                if (btn) {
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="fas fa-check me-1"></i> Completed';
+                    btn.disabled = true;
+                }
+                
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Lesson Completed!',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+
+                // Update Progress Bar
+                const progressBar = document.querySelector('.progress-bar');
+                 if (progressBar) {
+                    progressBar.style.width = data.progress + '%';
+                    progressBar.setAttribute('aria-valuenow', data.progress);
+                }
+            }
+        });
+    }
+
+
     function markAsComplete(courseId, itemId) {
         const btn = document.getElementById('markCompleteBtn');
         const originalText = btn.innerHTML;

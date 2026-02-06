@@ -61,7 +61,9 @@
                         <th>Amount</th>
                         <th>Your Share</th>
                         <th>Date</th>
-                        <th>Status</th>
+                        <th>Student Status</th>
+                        <th>Payout Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -74,10 +76,41 @@
                                 <td class="text-success fw-bold">Rp <?= number_format($payment['instructor_revenue']) ?></td>
                                 <td><?= date('M d, Y', $payment['date_added']) ?></td>
                                 <td>
+                                    <?php
+                                    $pStatus = $payment['payment_status'];
+                                    $badge = 'bg-secondary';
+                                    if ($pStatus == 'paid')
+                                        $badge = 'bg-success';
+                                    elseif ($pStatus == 'pending')
+                                        $badge = 'bg-warning text-dark';
+                                    elseif ($pStatus == 'verification_pending')
+                                        $badge = 'bg-info text-dark';
+                                    elseif ($pStatus == 'failed')
+                                        $badge = 'bg-danger';
+                                    ?>
+                                    <span class="badge <?= $badge ?>"><?= ucfirst($pStatus) ?></span>
+                                </td>
+                                <td>
                                     <?php if ($payment['instructor_payment_status']): ?>
                                         <span class="badge bg-success">Paid</span>
                                     <?php else: ?>
                                         <span class="badge bg-warning text-dark">Pending</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($payment['payment_status'] == 'verification_pending' || $payment['payment_status'] == 'pending'): ?>
+                                        <a href="<?= base_url('instructor/approve-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-success"
+                                           onclick="return confirm('Approve this payment?');"
+                                           title="Approve">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a href="<?= base_url('instructor/reject-payment/' . $payment['id']) ?>" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Reject this payment?');"
+                                           title="Reject">
+                                            <i class="fas fa-times"></i>
+                                        </a>
                                     <?php endif; ?>
                                 </td>
                             </tr>

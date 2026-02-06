@@ -20,11 +20,20 @@ if (!$current)
 <a href="<?= base_url('/admin/enrollments') ?>" class="<?= $current == 'enrollments' ? 'active' : '' ?>">
     <i class="fas fa-user-graduate"></i> Enrollments
 </a>
-<a href="<?= base_url('/admin/payment-requests') ?>" class="<?= $current == 'payment-requests' ? 'active' : '' ?>">
-    <i class="fas fa-money-check-alt"></i> Payments
+<a href="<?= base_url('/admin/payment-requests') ?>" class="<?= $current == 'payment-requests' ? 'active' : '' ?> d-flex justify-content-between align-items-center pe-3">
+    <span><i class="fas fa-money-check-alt"></i> Payments</span>
+    <?php
+    $pendingPayments = model('App\Models\PaymentModel')->where('payment_status', 'verification_pending')->countAllResults();
+    if ($pendingPayments > 0):
+        ?>
+        <span class="badge bg-danger rounded-pill"><?= $pendingPayments ?></span>
+    <?php endif; ?>
 </a>
 <a href="<?= base_url('/admin/revenue') ?>" class="<?= $current == 'revenue' ? 'active' : '' ?>">
     <i class="fas fa-chart-line"></i> Revenue
+</a>
+<a href="<?= base_url('/admin/payment_history') ?>" class="<?= $current == 'payment_history' ? 'active' : '' ?>">
+    <i class="fas fa-receipt"></i> Transaction History
 </a>
 <a href="<?= base_url('/admin/certificates') ?>" class="<?= $current == 'certificates' ? 'active' : '' ?>">
     <i class="fas fa-certificate"></i> Certificates

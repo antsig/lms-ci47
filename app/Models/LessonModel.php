@@ -16,7 +16,8 @@ class LessonModel extends BaseModel
         'cloud_video_id', 'video_url', 'date_added', 'last_modified',
         'lesson_type', 'attachment', 'attachment_type', 'caption', 'summary',
         'is_free', 'order', 'quiz_attempt', 'video_type_for_mobile_application',
-        'video_url_for_mobile_application', 'duration_for_mobile_application'
+        'video_url_for_mobile_application', 'duration_for_mobile_application',
+        'video_progression'
     ];
 
     protected $useTimestamps = false;
@@ -127,7 +128,7 @@ class LessonModel extends BaseModel
             // Get quiz details
             $db = \Config\Database::connect();
             $lesson['quiz'] = $db
-                ->table('question')
+                ->table('questions')
                 ->where('quiz_id', $lessonId)
                 ->orderBy('order', 'ASC')
                 ->get()

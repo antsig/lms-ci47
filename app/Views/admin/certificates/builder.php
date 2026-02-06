@@ -105,9 +105,33 @@
                         <!-- Text Content Edit (Only for custom text) -->
                         <div class="mb-2" id="textContentGroup" style="display:none;">
                             <label class="small">Text Content</label>
-                            <input type="text" class="form-control form-control-sm" id="pText" onkeyup="updateSelected()">
+                            <textarea class="form-control form-control-sm" id="pText" rows="3" onkeyup="updateSelected()"></textarea>
+                            <div class="d-flex gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="setTextAlign('left')"><i class="fas fa-align-left"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="setTextAlign('center')"><i class="fas fa-align-center"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="setTextAlign('right')"><i class="fas fa-align-right"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="setTextAlign('justify')"><i class="fas fa-align-justify"></i></button>
+                            </div>
                         </div>
 
+                        <div class="mb-2">
+                            <label class="small">Line Height</label>
+                            <input type="number" class="form-control form-control-sm" id="pLineHeight" value="1.2" step="0.1" onchange="updateSelected()">
+                        </div>
+
+                        <div class="mb-2">
+                             <label class="small">Font Family</label>
+                             <select class="form-select form-select-sm" id="pFontFamily" onchange="updateSelected()">
+                                 <option value="'Times New Roman', serif">Times New Roman</option>
+                                 <option value="Arial, sans-serif">Arial</option>
+                                 <option value="'Courier New', monospace">Courier New</option>
+                                 <option value="Georgia, serif">Georgia</option>
+                                 <option value="Verdana, sans-serif">Verdana</option>
+                                 <option value="Tahoma, sans-serif">Tahoma</option>
+                                 <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                             </select>
+                        </div>
+                        
                         <div class="mb-2">
                             <label class="small">Font Size (px)</label>
                             <input type="number" class="form-control form-control-sm" id="pFontSize" value="16" onchange="updateSelected()">
@@ -194,7 +218,11 @@
             y: 50,
             fontSize: 24,
             color: '#000000',
-            fontWeight: 'normal'
+            color: '#000000',
+            fontWeight: 'normal',
+            fontFamily: "'Times New Roman', serif",
+            textAlign: 'left',
+            lineHeight: 1.2
         };
         renderElement(elData);
     }
@@ -212,11 +240,18 @@
         div.style.fontSize = data.fontSize + 'px';
         div.style.color = data.color;
         div.style.fontWeight = data.fontWeight;
+        div.style.fontFamily = data.fontFamily || "'Times New Roman', serif";
+        div.style.textAlign = data.textAlign || 'left';
+        div.style.whiteSpace = 'pre-wrap'; // Support multiline
+        div.style.lineHeight = data.lineHeight || 1.2;
 
         // Save data object attached to element for easy access
         div.dataset.fontSize = data.fontSize;
         div.dataset.color = data.color;
         div.dataset.fontWeight = data.fontWeight;
+        div.dataset.fontFamily = data.fontFamily || "'Times New Roman', serif";
+        div.dataset.textAlign = data.textAlign || 'left';
+        div.dataset.lineHeight = data.lineHeight || 1.2;
 
         // Events
         div.addEventListener('mousedown', initDrag);
@@ -249,6 +284,14 @@
         document.getElementById('pFontSize').value = el.dataset.fontSize || 24;
         document.getElementById('pColor').value = el.dataset.color || '#000000';
         document.getElementById('pFontWeight').value = el.dataset.fontWeight || 'normal';
+        document.getElementById('pFontFamily').value = el.dataset.fontFamily || "'Times New Roman', serif";
+        document.getElementById('pLineHeight').value = el.dataset.lineHeight || 1.2;
+    }
+
+    function setTextAlign(align) {
+        if (!selectedElement) return;
+        selectedElement.style.textAlign = align;
+        selectedElement.dataset.textAlign = align;
     }
 
     function updateSelected() {
@@ -257,6 +300,8 @@
         let fontSize = document.getElementById('pFontSize').value;
         let color = document.getElementById('pColor').value;
         let fontWeight = document.getElementById('pFontWeight').value;
+        let fontFamily = document.getElementById('pFontFamily').value;
+        let lineHeight = document.getElementById('pLineHeight').value;
         
         // Update Text if applicable
         if (selectedElement.dataset.type === 'text') {
@@ -267,10 +312,14 @@
         selectedElement.style.fontSize = fontSize + 'px';
         selectedElement.style.color = color;
         selectedElement.style.fontWeight = fontWeight;
+        selectedElement.style.fontFamily = fontFamily;
+        selectedElement.style.lineHeight = lineHeight;
 
         selectedElement.dataset.fontSize = fontSize;
         selectedElement.dataset.color = color;
         selectedElement.dataset.fontWeight = fontWeight;
+        selectedElement.dataset.fontFamily = fontFamily;
+        selectedElement.dataset.lineHeight = lineHeight;
     }
 
     function deleteSelected() {
@@ -346,7 +395,10 @@
                 y: parseInt(item.style.top),
                 fontSize: parseInt(item.dataset.fontSize),
                 color: item.dataset.color,
-                fontWeight: item.dataset.fontWeight
+                fontWeight: item.dataset.fontWeight,
+                fontFamily: item.dataset.fontFamily,
+                textAlign: item.dataset.textAlign,
+                lineHeight: item.dataset.lineHeight
             });
         });
 

@@ -7,8 +7,11 @@
 <?= $this->section('content') ?>
 
 <div class="card">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Create New Course (Admin)</h5>
+        <a href="<?= base_url('/admin/courses') ?>" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
     </div>
     <div class="card-body">
         <form action="<?= base_url('/admin/store-course') ?>" method="POST" enctype="multipart/form-data">

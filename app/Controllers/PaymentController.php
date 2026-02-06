@@ -119,7 +119,7 @@ class PaymentController extends BaseController
     public function instruction($paymentId)
     {
         $payment = $this->paymentModel->find($paymentId);
-        if (!$payment || $payment['user_id'] != $this->auth->getUserId()) {
+        if (!$payment || ($payment['user_id'] != $this->auth->getUserId() && !$this->auth->isAdmin())) {
             return redirect()->to('/')->with('error', 'Invalid payment record.');
         }
 
@@ -159,13 +159,34 @@ class PaymentController extends BaseController
         $file = $this->request->getFile('proof_file');
         if ($file->isValid() && !$file->hasMoved()) {
             $newName = $file->getRandomName();
-            $file->move(WRITEPATH . '../public/uploads/payment_proofs', $newName);
+            $file->move(FCPATH . 'uploads/payment_proofs', $newName);
+
+            // Delete old file if exists
+            if (!empty($payment['proof_file']) && file_exists(FCPATH . 'uploads/payment_proofs/' . $payment['proof_file'])) {
+                unlink(FCPATH . 'uploads/payment_proofs/' . $payment['proof_file']);
+            }
 
             $this->paymentModel->update($paymentId, [
                 'proof_file' => $newName,
                 'payment_status' => 'verification_pending',
                 'last_modified' => time()
             ]);
+
+            // --- NOTIFICATION LOGIC START ---
+            $notificationModel = new \App\Models\NotificationModel();
+
+            // Notify Admins
+            $admins = $this->userModel->where('role_id', 1)->findAll();
+            foreach ($admins as $admin) {
+                $notificationModel->add(
+                    $admin['id'],
+                    'New Payment Proof',
+                    'Transaction #' . $payment['transaction_id'] . ' submitted proof.',
+                    'payment',
+                    'admin/revenue'
+                );
+            }
+            // --- NOTIFICATION LOGIC END ---
 
             return redirect()->to('/payment/success');
         }
@@ -179,5 +200,77 @@ class PaymentController extends BaseController
             'title' => 'Payment Submitted'
         ];
         return view('payment/success', $data);
+    }
+
+    public function history()
+    {
+        $userId = $this->auth->getUserId();
+
+        // Fetch payments with course details explicitly manually or via model join if added
+        // Since model has getUserPayments, let's use it or modify it to join
+        $payments = $this
+            ->paymentModel
+            ->select('payments.*, courses.title as course_title, courses.thumbnail')
+            ->join('courses', 'courses.id = payments.course_id')
+            ->where('payments.user_id', $userId)
+            ->orderBy('payments.date_added', 'DESC')
+            ->findAll();
+
+        $data = [
+            'title' => 'Transaction History',
+            'payments' => $payments
+        ];
+
+        return view('payment/history', $data);
+    }
+
+    // --- Admin Transaction History ---
+    public function admin_history()
+    {
+        // Ensure admin
+        if (!$this->auth->isAdmin()) {
+            return redirect()->to('/');
+        }
+
+        $payments = $this
+            ->paymentModel
+            ->select('payments.*, courses.title as course_title, users.first_name, users.last_name, users.email')
+            ->join('courses', 'courses.id = payments.course_id')
+            ->join('users', 'users.id = payments.user_id')
+            ->orderBy('payments.date_added', 'DESC')
+            ->findAll();
+
+        $data = [
+            'title' => 'All Transactions',
+            'payments' => $payments
+        ];
+
+        return view('admin/payment_history', $data);
+    }
+
+    public function admin_detail($paymentId)
+    {
+        if (!$this->auth->isAdmin()) {
+            return redirect()->to('/');
+        }
+
+        $payment = $this
+            ->paymentModel
+            ->select('payments.*, courses.title as course_title, users.first_name, users.last_name, users.email')
+            ->join('courses', 'courses.id = payments.course_id')
+            ->join('users', 'users.id = payments.user_id')
+            ->where('payments.id', $paymentId)
+            ->first();
+
+        if (!$payment) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $data = [
+            'title' => 'Transaction Detail',
+            'payment' => $payment
+        ];
+
+        return view('admin/payment_detail', $data);
     }
 }

@@ -124,6 +124,7 @@
                         <label class="form-label">Question Type</label>
                         <select class="form-select" name="type" id="questionType">
                             <option value="multiple_choice">Multiple Choice</option>
+                            <option value="essay">Essay / Short Answer</option>
                             <!-- <option value="true_false">True / False</option> -->
                         </select>
                     </div>
@@ -149,5 +150,36 @@
         </div>
     </div>
 </div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('questionType');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const inputs = optionsContainer.querySelectorAll('input');
+
+        function toggleOptions() {
+            if (typeSelect.value === 'essay') {
+                optionsContainer.style.display = 'none';
+                inputs.forEach(input => input.removeAttribute('required'));
+            } else {
+                optionsContainer.style.display = 'block';
+                inputs.forEach(input => {
+                    // Only text inputs are required, checkboxes are not
+                    if(input.type === 'text') {
+                        input.setAttribute('required', 'required');
+                    }
+                });
+            }
+        }
+
+        typeSelect.addEventListener('change', toggleOptions);
+        
+        // Initial check
+        toggleOptions();
+    });
+</script>
 
 <?= $this->endSection() ?>
