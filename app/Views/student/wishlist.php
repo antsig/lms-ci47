@@ -37,7 +37,7 @@
                             <a href="<?= base_url('/course/' . $course['id']) ?>">
                                 <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                      class="card-img-top" alt="<?= esc($course['title']) ?>"
-                                     onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
+                                     onerror="this.onerror=null;this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                             </a>
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title fw-bold">

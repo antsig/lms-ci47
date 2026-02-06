@@ -45,6 +45,20 @@
                     <label class="form-label">Profile Photo</label>
                     <input type="file" class="form-control" name="image">
                     <small class="text-muted">Upload a new photo to update.</small>
+                    
+                    <hr class="my-3">
+
+                    <label class="form-label">Digital Signature</label>
+                    <div class="mb-2">
+                        <?php if (!empty($user['signature'])): ?>
+                            <img src="<?= base_url('/uploads/signatures/' . $user['signature']) ?>" 
+                                 alt="Signature" style="max-height: 60px; border: 1px solid #ccc; padding: 5px;">
+                        <?php else: ?>
+                            <span class="text-muted small">No signature uploaded.</span>
+                        <?php endif; ?>
+                    </div>
+                    <input type="file" class="form-control" name="signature" accept="image/*">
+                    <small class="text-muted">Upload an image of your signature (PNG transparent recommended).</small>
                 </div>
             </div>
 

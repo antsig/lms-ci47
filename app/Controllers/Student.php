@@ -222,6 +222,14 @@ class Student extends BaseController
             $data['image'] = $newName;
         }
 
+        // Handle signature upload
+        $signature = $this->request->getFile('signature');
+        if ($signature && $signature->isValid()) {
+            $newSigName = $signature->getRandomName();
+            $signature->move(WRITEPATH . '../public/uploads/signatures', $newSigName);
+            $data['signature'] = $newSigName;
+        }
+
         $this->userModel->updateUser($userId, $data);
 
         return redirect()->back()->with('success', 'Profile updated successfully');

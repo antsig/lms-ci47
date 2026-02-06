@@ -86,12 +86,28 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="addElement('{certificate_code}', 'Code')">
                             <i class="fas fa-barcode"></i> Certificate Code
                         </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addElement('{instructor_name}', 'Instructor Name')">
+                            <i class="fas fa-chalkboard-teacher"></i> Instructor Name
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addElement('{instructor_signature}', 'Signature')">
+                            <i class="fas fa-signature"></i> Signature
+                        </button>
+                         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addElement('text', 'New Text')">
+                            <i class="fas fa-font"></i> Add Custom Text
+                        </button>
                     </div>
 
                     <hr>
                     
                     <div id="itemProperties" style="display:none;">
                         <h6 class="fw-bold">Item Style</h6>
+                        
+                        <!-- Text Content Edit (Only for custom text) -->
+                        <div class="mb-2" id="textContentGroup" style="display:none;">
+                            <label class="small">Text Content</label>
+                            <input type="text" class="form-control form-control-sm" id="pText" onkeyup="updateSelected()">
+                        </div>
+
                         <div class="mb-2">
                             <label class="small">Font Size (px)</label>
                             <input type="number" class="form-control form-control-sm" id="pFontSize" value="16" onchange="updateSelected()">
@@ -221,6 +237,14 @@
         // Show properties
         document.getElementById('itemProperties').style.display = 'block';
         
+        // Show/Hide Text Edit
+        if (el.dataset.type === 'text') {
+            document.getElementById('textContentGroup').style.display = 'block';
+            document.getElementById('pText').value = el.innerText;
+        } else {
+            document.getElementById('textContentGroup').style.display = 'none';
+        }
+        
         // Load values
         document.getElementById('pFontSize').value = el.dataset.fontSize || 24;
         document.getElementById('pColor').value = el.dataset.color || '#000000';
@@ -233,6 +257,12 @@
         let fontSize = document.getElementById('pFontSize').value;
         let color = document.getElementById('pColor').value;
         let fontWeight = document.getElementById('pFontWeight').value;
+        
+        // Update Text if applicable
+        if (selectedElement.dataset.type === 'text') {
+            let text = document.getElementById('pText').value;
+            selectedElement.innerText = text;
+        }
 
         selectedElement.style.fontSize = fontSize + 'px';
         selectedElement.style.color = color;

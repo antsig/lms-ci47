@@ -31,6 +31,7 @@ class UserModel extends BaseModel
         'status',
         'is_instructor',
         'image',
+        'signature',
         'sessions'
     ];
 

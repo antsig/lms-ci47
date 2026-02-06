@@ -126,10 +126,25 @@
                 foreach ($elements as $el):
                     // Replace Placeholders
                     $text = $el['text'];
-                    $text = str_replace('{student_name}', esc($user['first_name'] . ' ' . $user['last_name']), $text);
-                    $text = str_replace('{course_name}', esc($course['title']), $text);
-                    $text = str_replace('{completion_date}', $date, $text);
-                    $text = str_replace('{certificate_code}', 'CERT-' . str_pad($enrollment['id'], 6, '0', STR_PAD_LEFT), $text);
+                    if ($el['type'] !== 'text') {
+                        $text = str_replace('{student_name}', esc($user['first_name'] . ' ' . $user['last_name']), $text);
+                        $text = str_replace('{course_name}', esc($course['title']), $text);
+                        $text = str_replace('{completion_date}', $date, $text);
+                        $text = str_replace('{certificate_code}', 'CERT-' . str_pad($enrollment['id'], 6, '0', STR_PAD_LEFT), $text);
+                        $text = str_replace('{instructor_name}', esc($course['instructor_name'] ?? 'Instructor'), $text);
+
+                        // Signature Replacement
+                        if (strpos($text, '{instructor_signature}') !== false) {
+                            $signatureFile = $course['instructors'][0]['signature'] ?? null;
+                            if ($signatureFile) {
+                                $imgTag = '<img src="' . base_url('uploads/signatures/' . $signatureFile) . '" style="height: 50px; width: auto;">';
+                                $text = str_replace('{instructor_signature}', $imgTag, $text);
+                            } else {
+                                $text = str_replace('{instructor_signature}', '', $text);
+                            }
+                        }
+                    }
+                    // For type 'text', we just display the text as saved (which is editable by admin)
                     ?>
                 <div class="cert-element" style="
                     left: <?= $el['x'] ?>px; 

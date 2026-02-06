@@ -3,14 +3,14 @@
 <?= $this->section('content') ?>
 
 <div class="container py-5">
-    <div class="row">
+    <div class="row align-items-start">
         <!-- Course Content -->
         <div class="col-lg-8">
             <!-- Course Header -->
             <div class="card mb-4">
                 <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                      class="card-img-top" alt="<?= esc($course['title']) ?>"
-                     onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
+                     onerror="this.onerror=null;this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                 <div class="card-body">
                     <div class="mb-3">
                         <span class="badge bg-primary"><?= esc($course['category_name'] ?? 'General') ?></span>
@@ -60,44 +60,36 @@
             </div>
             
             <!-- What You'll Learn -->
-            <?php if (!empty($course['outcomes'])): ?>
+            <?php
+            $outcomes = is_string($course['outcomes']) ? json_decode($course['outcomes'], true) : $course['outcomes'];
+            if (!empty($outcomes) && is_array($outcomes)):
+                ?>
             <div class="card mb-4">
                 <div class="card-body">
                     <h4 class="fw-bold mb-3">What You'll Learn</h4>
                     <div class="row">
-                        <?php
-                        $outcomes = is_string($course['outcomes']) ? json_decode($course['outcomes'], true) : $course['outcomes'];
-                        if ($outcomes):
-                            foreach ($outcomes as $outcome):
-                                ?>
+                        <?php foreach ($outcomes as $outcome): ?>
                             <div class="col-md-6 mb-2">
                                 <i class="fas fa-check-circle text-success"></i> <?= esc($outcome) ?>
                             </div>
-                        <?php
-                            endforeach;
-                        endif;
-                        ?>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
             <?php endif; ?>
             
             <!-- Requirements -->
-            <?php if (!empty($course['requirements'])): ?>
+            <?php
+            $requirements = is_string($course['requirements']) ? json_decode($course['requirements'], true) : $course['requirements'];
+            if (!empty($requirements) && is_array($requirements)):
+                ?>
             <div class="card mb-4">
                 <div class="card-body">
                     <h4 class="fw-bold mb-3">Requirements</h4>
                     <ul>
-                        <?php
-                        $requirements = is_string($course['requirements']) ? json_decode($course['requirements'], true) : $course['requirements'];
-                        if ($requirements):
-                            foreach ($requirements as $req):
-                                ?>
+                        <?php foreach ($requirements as $req): ?>
                             <li><?= esc($req) ?></li>
-                        <?php
-                            endforeach;
-                        endif;
-                        ?>
+                        <?php endforeach; ?>
                     </ul>
                 </div>
             </div>

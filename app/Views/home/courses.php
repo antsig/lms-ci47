@@ -80,7 +80,7 @@
                             <div class="card course-card h-100">
                                 <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                      class="card-img-top" alt="<?= esc($course['title']) ?>"
-                                     onerror="this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
+                                     onerror="this.onerror=null;this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
                                 <div class="card-body">
                                     <div class="mb-2">
                                         <span class="badge bg-primary"><?= esc($course['category_name'] ?? 'General') ?></span>
