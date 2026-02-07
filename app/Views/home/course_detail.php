@@ -177,9 +177,23 @@
                             <i class="fas fa-shopping-cart"></i> Enroll Now
                         </a>
                     <?php endif; ?>
+                    <?php // Only show wishlist for non-instructors (i.e., students and admins)
+                        if (!$auth->isInstructor()): 
+                        
+                        // Further check if item is already in wishlist
+                        $wishlistModel = new \App\Models\WishlistModel();
+                        $isWishlisted = $wishlistModel->isWishlisted($auth->getUserId(), $course['id']);
+
+                        if ($isWishlisted):
+                    ?>
+                        <a href="<?= base_url('/student/wishlist/remove/' . $course['id']) ?>" class="btn btn-danger w-100 mb-3">
+                            <i class="fas fa-heart-broken"></i> Remove from Wishlist
+                        </a>
+                    <?php else: ?>
                         <a href="<?= base_url('/student/wishlist/add/' . $course['id']) ?>" class="btn btn-outline-primary w-100 mb-3">
                             <i class="fas fa-heart"></i> Add to Wishlist
                         </a>
+                    <?php endif; endif; ?>
                     <?php else: ?>
                         <a href="<?= base_url('/login') ?>" class="btn btn-primary w-100 mb-3">
                             <i class="fas fa-sign-in-alt"></i> Login to Enroll

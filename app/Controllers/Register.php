@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Libraries\Auth;
 use App\Models\UserModel;
+use App\Models\WishlistModel;
 
 class Register extends BaseController
 {
@@ -74,6 +75,25 @@ class Register extends BaseController
             $loginResult = $this->auth->login($data['email'], $this->request->getPost('password'));
 
             if ($loginResult['success']) {
+                // --- Wishlist Redirect Logic ---
+                $wishlistCourseId = session()->get('wishlist_redirect');
+                if ($wishlistCourseId) {
+                    $userId = $this->auth->getUserId();
+                    $wishlistModel = new WishlistModel();
+                    $wishlistModel->addToWishlist($userId, $wishlistCourseId);
+                    session()->remove('wishlist_redirect');
+                }
+                // --- End Wishlist Redirect ---
+
+                // Check for redirect URL
+                $redirectUrl = session()->get('redirect_url');
+                session()->remove('redirect_url');
+
+                if ($redirectUrl) {
+                    $message = $wishlistCourseId ? 'Registration successful! The course has been added to your wishlist.' : 'Registration successful! Welcome to our platform.';
+                    return redirect()->to($redirectUrl)->with('success', $message);
+                }
+
                 return redirect()->to('/student')->with('success', 'Registration successful! Welcome to our platform.');
             }
 

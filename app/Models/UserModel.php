@@ -23,7 +23,7 @@ class UserModel extends BaseModel
         'role_id',
         'created_at',
         'updated_at',
-        'wishlist',
+        'sessions',
         'title',
         'payment_keys',
         'verification_code',
@@ -31,7 +31,6 @@ class UserModel extends BaseModel
         'is_instructor',
         'image',
         'signature',
-        'sessions'
     ];
 
     // Dates
@@ -149,50 +148,5 @@ class UserModel extends BaseModel
         }
 
         return $builder->countAllResults() > 0;
-    }
-
-    /**
-     * Get user's wishlist
-     */
-    public function getWishlist($userId)
-    {
-        $user = $this->find($userId);
-
-        if ($user && !empty($user['wishlist'])) {
-            return json_decode($user['wishlist'], true);
-        }
-
-        return [];
-    }
-
-    /**
-     * Add to wishlist
-     */
-    public function addToWishlist($userId, $courseId)
-    {
-        $wishlist = $this->getWishlist($userId);
-
-        if (!in_array($courseId, $wishlist)) {
-            $wishlist[] = $courseId;
-            return $this->update($userId, ['wishlist' => json_encode($wishlist)]);
-        }
-
-        return true;
-    }
-
-    /**
-     * Remove from wishlist
-     */
-    public function removeFromWishlist($userId, $courseId)
-    {
-        $wishlist = $this->getWishlist($userId);
-
-        $key = array_search($courseId, $wishlist);
-        if ($key !== false) {
-            unset($wishlist[$key]);
-            return $this->update($userId, ['wishlist' => json_encode(array_values($wishlist))]);
-        }
-
-        return true;
     }
 }

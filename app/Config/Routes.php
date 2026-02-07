@@ -58,6 +58,11 @@ $routes->group('student', ['filter' => 'auth'], function ($routes) {
 $routes->group('instructor', ['filter' => 'role:instructor'], function ($routes) {
     $routes->get('/', 'Instructor::index');
     $routes->get('dashboard', 'Instructor::index');
+    $routes->get('my-learning', 'Instructor::my_learning');
+    $routes->get('profile', 'Instructor::profile');
+    $routes->post('profile/update', 'Instructor::update_profile');
+    $routes->get('change-password', 'Instructor::change_password');
+    $routes->post('change-password/process', 'Instructor::process_change_password');
     $routes->get('courses', 'Instructor::courses');
     $routes->get('create-course', 'Instructor::create_course');
     $routes->post('store-course', 'Instructor::store_course');

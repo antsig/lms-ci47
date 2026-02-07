@@ -7,6 +7,7 @@ use App\Models\CourseModel;
 use App\Models\EnrollmentModel;
 use App\Models\LessonModel;
 use App\Models\UserModel;
+use App\Models\WishlistModel;
 
 class Student extends BaseController
 {
@@ -14,6 +15,7 @@ class Student extends BaseController
     protected $quizModel;
     protected $assignmentModel;
     protected $questionModel;
+    protected $wishlistModel;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class Student extends BaseController
         $this->assignmentModel = new \App\Models\AssignmentModel();
         $this->questionModel = new \App\Models\QuestionModel();
         $this->userModel = new UserModel();
+        $this->wishlistModel = new WishlistModel();
         helper(['form', 'url']);
     }
 
@@ -221,14 +224,6 @@ class Student extends BaseController
             $data['image'] = $newName;
         }
 
-        // Handle signature upload
-        $signature = $this->request->getFile('signature');
-        if ($signature && $signature->isValid()) {
-            $newSigName = $signature->getRandomName();
-            $signature->move(WRITEPATH . '../public/uploads/signatures', $newSigName);
-            $data['signature'] = $newSigName;
-        }
-
         $this->userModel->updateUser($userId, $data);
 
         return redirect()->back()->with('success', 'Profile updated successfully');
@@ -281,12 +276,7 @@ class Student extends BaseController
     public function wishlist()
     {
         $userId = $this->auth->getUserId();
-        $wishlistIds = $this->userModel->getWishlist($userId);
-
-        $courses = [];
-        if (!empty($wishlistIds)) {
-            $courses = $this->courseModel->whereIn('id', $wishlistIds)->findAll();
-        }
+        $courses = $this->wishlistModel->getWishlistedCourses($userId);
 
         $data = [
             'title' => 'My Wishlist',
@@ -301,8 +291,14 @@ class Student extends BaseController
      */
     public function add_to_wishlist($courseId)
     {
+        if (! $this->auth->isLoggedIn()) {
+            session()->set('wishlist_redirect', $courseId);
+            session()->set('redirect_url', previous_url());
+            return redirect()->to('/login')->with('error', 'You must be logged in to add items to your wishlist.');
+        }
+
         $userId = $this->auth->getUserId();
-        $this->userModel->addToWishlist($userId, $courseId);
+        $this->wishlistModel->addToWishlist($userId, $courseId);
 
         return redirect()->back()->with('success', 'Course added to wishlist');
     }
@@ -313,7 +309,7 @@ class Student extends BaseController
     public function remove_from_wishlist($courseId)
     {
         $userId = $this->auth->getUserId();
-        $this->userModel->removeFromWishlist($userId, $courseId);
+        $this->wishlistModel->removeFromWishlist($userId, $courseId);
 
         return redirect()->back()->with('success', 'Course removed from wishlist');
     }

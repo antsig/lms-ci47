@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/dashboard') ?>
 
 <?= $this->section('sidebar') ?>
-    <?= $this->include('student/sidebar') ?>
+    <?= $this->include('instructor/sidebar') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -9,12 +9,12 @@
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">My Profile</h5>
-        <a href="<?= base_url('/student/change-password') ?>" class="btn btn-outline-primary btn-sm">
+        <a href="<?= base_url('/instructor/change-password') ?>" class="btn btn-outline-primary btn-sm">
             <i class="fas fa-key"></i> Change Password
         </a>
     </div>
     <div class="card-body">
-        <form action="<?= base_url('/student/profile/update') ?>" method="POST" enctype="multipart/form-data">
+        <form action="<?= base_url('/instructor/profile/update') ?>" method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
             
             <div class="row align-items-center mb-4">
@@ -27,6 +27,20 @@
                     <label class="form-label">Profile Photo</label>
                     <input type="file" class="form-control" name="image">
                     <small class="text-muted">Upload a new photo to update.</small>
+                    
+                    <hr class="my-3">
+
+                    <label class="form-label">Digital Signature</label>
+                    <div class="mb-2">
+                        <?php if (!empty($user['signature'])): ?>
+                            <img src="<?= base_url('/uploads/signatures/' . $user['signature']) ?>" 
+                                 alt="Signature" style="max-height: 60px; border: 1px solid #ccc; padding: 5px;">
+                        <?php else: ?>
+                            <span class="text-muted small">No signature uploaded.</span>
+                        <?php endif; ?>
+                    </div>
+                    <input type="file" class="form-control" name="signature" accept="image/*">
+                    <small class="text-muted">Upload an image of your signature (PNG transparent recommended).</small>
                 </div>
             </div>
 

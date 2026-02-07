@@ -14,261 +14,40 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
+    
+    <?= $this->renderSection('styles') ?>
     <style>
-        :root {
-            --primary-color: #4F46E5;
-            --secondary-color: #10B981;
-            --dark-color: #1F2937;
-            --text-color: #374151;
-            --text-muted: #6B7280;
-            --light-color: #F9FAFB;
-            --sidebar-width: 260px;
-        }
-        
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        body {
-            background-color: var(--light-color);
-            color: var(--text-color);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--dark-color);
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        
-        h1 { font-size: 2.25rem; }
-        h2 { font-size: 1.875rem; }
-        h3 { font-size: 1.5rem; }
-        h4 { font-size: 1.25rem; }
-        h5 { font-size: 1.125rem; }
-        h6 { font-size: 1rem; }
-        
-        .sidebar {
+        #page-loader {
             position: fixed;
             top: 0;
             left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            overflow-y: auto;
-            z-index: 1000;
-        }
-        
-        .sidebar-brand {
-            padding: 1.25rem 1.5rem;
-            font-size: 1.375rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            border-bottom: 1px solid #E5E7EB;
-        }
-        
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-        
-        .sidebar-menu a {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: var(--text-color);
-            text-decoration: none;
-            font-size: 0.9375rem;
-            font-weight: 500;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-        
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background-color: #EEF2FF;
-            color: var(--primary-color);
-            border-left-color: var(--primary-color);
-        }
-        
-        .sidebar-menu a i {
-            width: 20px;
-            margin-right: 10px;
-            font-size: 0.875rem;
-        }
-        
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-        }
-        
-        .topbar {
-            background: white;
-            padding: 1rem 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .topbar h4 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-        
-        .dropdown-item {
-            font-size: 0.9375rem;
-            color: var(--text-color);
-            padding: 0.5rem 1rem;
-        }
-        
-        .dropdown-item i {
-            width: 20px;
-            margin-right: 8px;
-            font-size: 0.875rem;
-        }
-        
-        .content-wrapper {
-            padding: 1.5rem;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border: 1px solid #E5E7EB;
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card .icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: none;
             justify-content: center;
-            font-size: 1.25rem;
-            color: white;
+            align-items: center;
         }
-        
-        .stat-card .icon.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
         }
-        
-        .stat-card .icon.success {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-        }
-        
-        .stat-card .icon.warning {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-        }
-        
-        .stat-card .icon.danger {
-            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-        }
-        
-        .stat-card h3 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            margin: 0.5rem 0 0.25rem;
-        }
-        
-        .stat-card p {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin: 0;
-        }
-        
-        .card {
-            border: 1px solid #E5E7EB;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-        
-        .table {
-            background: white;
-            font-size: 0.9375rem;
-        }
-        
-        .table th {
-            font-weight: 600;
-            color: var(--dark-color);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .table td {
-            color: var(--text-color);
-        }
-        
-        .btn {
-            font-size: 0.9375rem;
-            font-weight: 500;
-            padding: 0.5rem 1.25rem;
-            border-radius: 6px;
-        }
-        
-        .btn-sm {
-            font-size: 0.875rem;
-            padding: 0.375rem 1rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #4338CA;
-            border-color: #4338CA;
-        }
-        
-        .badge {
-            padding: 0.375em 0.75em;
-            font-weight: 500;
-            font-size: 0.75rem;
-            border-radius: 4px;
-        }
-        
-        .alert {
-            font-size: 0.9375rem;
-            border-radius: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .content-wrapper {
-                padding: 1rem;
-            }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
-    
-    <?= $this->renderSection('styles') ?>
 </head>
 <body>
+    <div id="page-loader">
+        <div class="spinner"></div>
+    </div>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
@@ -315,7 +94,11 @@
                     <i class="fas fa-user-circle fa-lg"></i> <?= esc($user['first_name'] ?? 'User') ?>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    <?php if ($auth->isInstructor()): ?>
+                    <li><a class="dropdown-item" href="<?= base_url('/instructor/profile') ?>"><i class="fas fa-user"></i> Profile</a></li>
+                    <?php else: ?>
                     <li><a class="dropdown-item" href="<?= base_url('/student/profile') ?>"><i class="fas fa-user"></i> Profile</a></li>
+                    <?php endif; ?>
                     <li><a class="dropdown-item" href="<?= base_url('/') ?>"><i class="fas fa-home"></i> Home</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="<?= base_url('/login/logout') ?>"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
@@ -441,5 +224,47 @@
     </script>
 
     <?= $this->renderSection('scripts') ?>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.getElementById('page-loader');
+
+            // Function to show the loader
+            function showLoader() {
+                if (loader) {
+                    loader.style.display = 'flex';
+                }
+            }
+
+            // Function to hide the loader
+            function hideLoader() {
+                if (loader) {
+                    loader.style.display = 'none';
+                }
+            }
+
+            // Combine sidebar links and other important navigation links
+            const navLinks = document.querySelectorAll('.sidebar-menu a, .content-wrapper a.btn');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Exclude external links, new tabs, dropdowns, and empty hashes
+                    if (link.hostname !== window.location.hostname || 
+                        link.target === '_blank' || 
+                        link.getAttribute('data-bs-toggle') === 'dropdown' ||
+                        link.getAttribute('href') === '#') {
+                        return;
+                    }
+                    showLoader();
+                });
+            });
+
+            // Hide loader when page is shown
+            window.addEventListener('pageshow', function() {
+                setTimeout(hideLoader, 0);
+            });
+
+        });
+    </script>
 </body>
 </html>

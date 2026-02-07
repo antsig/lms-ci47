@@ -8,6 +8,12 @@ if (!$current)
 <a href="<?= base_url('/instructor') ?>" class="<?= ($current == 'dashboard' || $current == '') ? 'active' : '' ?>">
     <i class="fas fa-tachometer-alt"></i> Dashboard
 </a>
+<a href="<?= base_url('/instructor/profile') ?>" class="<?= ($current == 'profile' || $current == 'change-password') ? 'active' : '' ?>">
+    <i class="fas fa-user"></i> My Profile
+</a>
+<a href="<?= base_url('/instructor/my-learning') ?>" class="<?= ($current == 'my-learning') ? 'active' : '' ?>">
+    <i class="fas fa-graduation-cap"></i> My Learning
+</a>
 <a href="<?= base_url('/instructor/courses') ?>" class="<?= ($current == 'courses' || $current == 'edit-course' || $current == 'edit-quiz' || $current == 'edit-assignment') ? 'active' : '' ?>">
     <i class="fas fa-book"></i> My Courses
 </a>

@@ -46,8 +46,11 @@ class Instructor extends BaseController
         $totalStudents = $this->enrollmentModel->getInstructorEnrollmentCount($instructorId);
         $revenueStats = $this->paymentModel->getRevenueStats(null, null, $instructorId);
 
+        $user = $this->userModel->find($instructorId);
+
         $data = [
             'title' => 'Instructor Dashboard',
+            'user' => $user,
             'courses' => $courses,
             'total_courses' => count($courses),
             'total_students' => $totalStudents,
@@ -57,6 +60,121 @@ class Instructor extends BaseController
 
         return view('instructor/dashboard', $data);
     }
+
+    /**
+     * Profile
+     */
+    public function profile()
+    {
+        $data = [
+            'title' => 'My Profile',
+            'user' => $this->auth->getUser(),
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('instructor/profile', $data);
+    }
+
+    /**
+     * Update profile
+     */
+    public function update_profile()
+    {
+        $userId = $this->auth->getUserId();
+
+        $rules = [
+            'first_name' => 'required|min_length[2]',
+            'last_name' => 'required|min_length[2]',
+            'email' => "required|valid_email|is_unique[users.email,id,{$userId}]",
+            'phone' => 'permit_empty'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'first_name' => $this->request->getPost('first_name'),
+            'last_name' => $this->request->getPost('last_name'),
+            'email' => $this->request->getPost('email'),
+            'phone' => $this->request->getPost('phone'),
+            'biography' => $this->request->getPost('biography')
+        ];
+
+        // Handle profile image upload
+        $image = $this->request->getFile('image');
+        if ($image && $image->isValid()) {
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'uploads/user_images', $newName);
+            $data['image'] = $newName;
+
+             // Delete old image if it exists
+            $user = $this->auth->getUser();
+            if (!empty($user['image']) && file_exists(FCPATH . 'uploads/user_images/' . $user['image'])) {
+                unlink(FCPATH . 'uploads/user_images/' . $user['image']);
+            }
+        }
+
+        // Handle signature upload
+        $signature = $this->request->getFile('signature');
+        if ($signature && $signature->isValid()) {
+            $newSigName = $signature->getRandomName();
+            $signature->move(FCPATH . 'uploads/signatures', $newSigName);
+            $data['signature'] = $newSigName;
+
+            // Delete old signature if it exists
+            $user = $this->auth->getUser();
+            if (!empty($user['signature']) && file_exists(FCPATH . 'uploads/signatures/' . $user['signature'])) {
+                unlink(FCPATH . 'uploads/signatures/' . $user['signature']);
+            }
+        }
+
+        $this->userModel->update($userId, $data);
+
+        return redirect()->back()->with('success', 'Profile updated successfully');
+    }
+
+    /**
+     * Change password form
+     */
+    public function change_password()
+    {
+        $data = [
+            'title' => 'Change Password',
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('instructor/change_password', $data);
+    }
+
+    /**
+     * Process change password
+     */
+    public function process_change_password()
+    {
+        $rules = [
+            'current_password' => 'required',
+            'new_password' => 'required|min_length[6]',
+            'confirm_password' => 'required|matches[new_password]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
+        }
+
+        $userId = $this->auth->getUserId();
+        $currentPassword = $this->request->getPost('current_password');
+        $newPassword = $this->request->getPost('new_password');
+
+        $result = $this->auth->changePassword($userId, $currentPassword, $newPassword);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message']);
+        }
+
+        return redirect()->back()->with('error', $result['message']);
+    }
+
 
     /**
      * My courses
@@ -283,6 +401,23 @@ class Instructor extends BaseController
         }
 
         return redirect()->back()->with('error', 'Failed to add lesson');
+    }
+
+
+    /**
+     * Courses the instructor is enrolled in
+     */
+    public function my_learning()
+    {
+        $userId = $this->auth->getUserId();
+        $enrolledCourses = $this->enrollmentModel->getUserCourses($userId);
+
+        $data = [
+            'title' => 'My Learning',
+            'courses' => $enrolledCourses
+        ];
+
+        return view('instructor/my_learning', $data);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\Auth;
+use App\Models\WishlistModel;
 
 class Login extends BaseController
 {
@@ -59,12 +60,23 @@ class Login extends BaseController
         $result = $this->auth->login($email, $password, $remember);
 
         if ($result['success']) {
+            // --- Wishlist Redirect Logic ---
+            $wishlistCourseId = session()->get('wishlist_redirect');
+            if ($wishlistCourseId) {
+                $userId = $this->auth->getUserId();
+                $wishlistModel = new WishlistModel();
+                $wishlistModel->addToWishlist($userId, $wishlistCourseId);
+                session()->remove('wishlist_redirect');
+            }
+            // --- End Wishlist Redirect ---
+
             // Check for redirect URL
             $redirectUrl = session()->get('redirect_url');
             session()->remove('redirect_url');
 
             if ($redirectUrl) {
-                return redirect()->to($redirectUrl);
+                $message = $wishlistCourseId ? 'Login successful! The course has been added to your wishlist.' : 'Login successful!';
+                return redirect()->to($redirectUrl)->with('success', $message);
             }
 
             return $this->redirectBasedOnRole();
