@@ -1,28 +1,7 @@
 <?= $this->extend('layouts/dashboard') ?>
 
 <?= $this->section('sidebar') ?>
-<a href="<?= base_url('/instructor') ?>" class="active">
-    <i class="fas fa-tachometer-alt"></i> Dashboard
-</a>
-<a href="<?= base_url('/instructor/courses') ?>">
-    <i class="fas fa-book"></i> My Courses
-</a>
-<a href="<?= base_url('/instructor/create-course') ?>">
-    <i class="fas fa-plus-circle"></i> Create Course
-</a>
-<a href="<?= base_url('/instructor/students') ?>">
-    <i class="fas fa-users"></i> Students
-</a>
-<a href="<?= base_url('/instructor/revenue') ?>">
-    <i class="fas fa-dollar-sign"></i> Revenue
-</a>
-<hr>
-<a href="<?= base_url('/') ?>">
-    <i class="fas fa-home"></i> Back to Home
-</a>
-<a href="<?= base_url('/login/logout') ?>">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
+    <?= $this->include('instructor/sidebar') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

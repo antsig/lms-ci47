@@ -158,8 +158,13 @@ class PaymentController extends BaseController
 
         $file = $this->request->getFile('proof_file');
         if ($file->isValid() && !$file->hasMoved()) {
+            $uploadPath = FCPATH . 'uploads/payment_proofs';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0777, true);
+            }
+
             $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/payment_proofs', $newName);
+            $file->move($uploadPath, $newName);
 
             // Delete old file if exists
             if (!empty($payment['proof_file']) && file_exists(FCPATH . 'uploads/payment_proofs/' . $payment['proof_file'])) {

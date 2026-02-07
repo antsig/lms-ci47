@@ -1,28 +1,7 @@
 <?= $this->extend('layouts/dashboard') ?>
 
 <?= $this->section('sidebar') ?>
-<a href="<?= base_url('/instructor') ?>">
-    <i class="fas fa-tachometer-alt"></i> Dashboard
-</a>
-<a href="<?= base_url('/instructor/courses') ?>">
-    <i class="fas fa-book"></i> My Courses
-</a>
-<a href="<?= base_url('/instructor/create-course') ?>">
-    <i class="fas fa-plus-circle"></i> Create Course
-</a>
-<a href="<?= base_url('/instructor/students') ?>">
-    <i class="fas fa-users"></i> Students
-</a>
-<a href="<?= base_url('/instructor/revenue') ?>" class="active">
-    <i class="fas fa-dollar-sign"></i> Revenue
-</a>
-<hr>
-<a href="<?= base_url('/') ?>">
-    <i class="fas fa-home"></i> Back to Home
-</a>
-<a href="<?= base_url('/login/logout') ?>">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
+    <?= $this->include('instructor/sidebar') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -63,6 +42,7 @@
                         <th>Date</th>
                         <th>Student Status</th>
                         <th>Payout Status</th>
+                        <th>Proof</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -98,6 +78,18 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
+                                    <?php if (!empty($payment['proof_file'])): ?>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-info" 
+                                                onclick="showProof('<?= base_url('uploads/payment_proofs/' . $payment['proof_file']) ?>')"
+                                                title="View Proof">
+                                            <i class="fas fa-image"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="text-muted small">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
                                     <?php if ($payment['payment_status'] == 'verification_pending' || $payment['payment_status'] == 'pending'): ?>
                                         <a href="<?= base_url('instructor/approve-payment/' . $payment['id']) ?>" 
                                            class="btn btn-sm btn-success"
@@ -125,5 +117,31 @@
         </div>
     </div>
 </div>
+
+    </div>
+</div>
+
+<!-- Proof Preview Modal -->
+<div class="modal fade" id="proofModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Proof</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0 bg-light">
+                <img id="proofImage" src="" alt="Proof" class="img-fluid" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showProof(url) {
+        document.getElementById('proofImage').src = url;
+        var myModal = new bootstrap.Modal(document.getElementById('proofModal'));
+        myModal.show();
+    }
+</script>
 
 <?= $this->endSection() ?>

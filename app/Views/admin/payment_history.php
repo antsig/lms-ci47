@@ -98,12 +98,12 @@
                                 </td>
                                 <td>
                                     <?php if (!empty($payment['proof_file'])): ?>
-                                        <a href="<?= base_url('uploads/payment_proofs/' . $payment['proof_file']) ?>" 
-                                           target="_blank" 
-                                           class="btn btn-sm btn-outline-info" 
-                                           title="View Proof">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-info" 
+                                                onclick="showProof('<?= base_url('uploads/payment_proofs/' . $payment['proof_file']) ?>')"
+                                                title="View Proof">
                                             <i class="fas fa-image"></i>
-                                        </a>
+                                        </button>
                                     <?php else: ?>
                                         <span class="text-muted small">-</span>
                                     <?php endif; ?>
@@ -115,7 +115,7 @@
                                            title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <?php if ($payment['payment_status'] == 'verification_pending'): ?>
+                                        <?php if ($payment['payment_status'] == 'verification_pending' || $payment['payment_status'] == 'pending'): ?>
                                             <a href="<?= base_url('/admin/approve-payment/' . $payment['id']) ?>" 
                                                class="btn btn-sm btn-success"
                                                onclick="return confirm('Approve this payment and enroll student?');"
@@ -141,3 +141,26 @@
 </div>
 
 <?= $this->endSection() ?>
+
+<!-- Proof Preview Modal -->
+<div class="modal fade" id="proofModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Proof</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0 bg-light">
+                <img id="proofImage" src="" alt="Proof" class="img-fluid" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showProof(url) {
+        document.getElementById('proofImage').src = url;
+        var myModal = new bootstrap.Modal(document.getElementById('proofModal'));
+        myModal.show();
+    }
+</script>

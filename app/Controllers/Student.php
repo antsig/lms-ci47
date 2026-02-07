@@ -210,7 +210,6 @@ class Student extends BaseController
             'last_name' => $this->request->getPost('last_name'),
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
-            'address' => $this->request->getPost('address'),
             'biography' => $this->request->getPost('biography')
         ];
 

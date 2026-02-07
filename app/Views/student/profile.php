@@ -14,7 +14,7 @@
         </a>
     </div>
     <div class="card-body">
-        <form action="<?= base_url('/student/update_profile') ?>" method="POST" enctype="multipart/form-data">
+        <form action="<?= base_url('/student/profile/update') ?>" method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
             
             <div class="row align-items-center mb-4">

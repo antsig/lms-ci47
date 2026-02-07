@@ -142,13 +142,22 @@ class CategoryModel extends BaseModel
     {
         $categories = [];
         $parents = $this->getParentCategories();
+        $courseModel = new CourseModel();  // Instantiate locally or via DI
 
         foreach ($parents as $parent) {
+            // Count courses for parent (optional: verify if parent can have direct courses or just sum of subs)
+            // Assuming simplified: count direct content + children content? Or just direct.
+            // Usually parents act as wrappers, but let's count direct first.
+            // Better: Count all courses where category_id = parent OR sub_category_id is child of parent.
+            // For simplicity and typical use: Count direct assignment to this category_id.
+            $parent['course_count'] = $courseModel->where('category_id', $parent['id'])->where('status', 'active')->countAllResults();
+
             $categories[] = $parent;
             $subs = $this->getSubCategories($parent['id']);
 
             foreach ($subs as $sub) {
                 $sub['name'] = '-- ' . $sub['name'];
+                $sub['course_count'] = $courseModel->where('category_id', $sub['id'])->where('status', 'active')->countAllResults();
                 $categories[] = $sub;
             }
         }

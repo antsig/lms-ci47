@@ -53,9 +53,11 @@
                                 </td>
                                 <td>
                                     <?php if ($payment['proof_file']): ?>
-                                        <a href="<?= base_url('uploads/payment_proofs/' . $payment['proof_file']) ?>" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-info" 
+                                                onclick="showProof('<?= base_url('uploads/payment_proofs/' . $payment['proof_file']) ?>')">
                                             <i class="fas fa-image"></i> View
-                                        </a>
+                                        </button>
                                     <?php else: ?>
                                         <span class="text-muted small">No Proof</span>
                                     <?php endif; ?>
@@ -100,5 +102,28 @@
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Proof Preview Modal -->
+<div class="modal fade" id="proofModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Proof</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-0 bg-light">
+                <img id="proofImage" src="" alt="Proof" class="img-fluid" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showProof(url) {
+        document.getElementById('proofImage').src = url;
+        var myModal = new bootstrap.Modal(document.getElementById('proofModal'));
+        myModal.show();
+    }
+</script>
 
 <?= $this->endSection() ?>
