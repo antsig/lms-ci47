@@ -30,14 +30,19 @@ class PaymentController extends BaseController
     {
         $userId = $this->auth->getUserId();
 
-        // 1. Check if already enrolled
-        if ($this->enrollmentModel->isEnrolled($userId, $courseId)) {
-            return redirect()->to('/course/' . $courseId)->with('info', 'You are already enrolled in this course.');
-        }
-
         $course = $this->courseModel->find($courseId);
         if (!$course) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        // Check if instructor is enrolling in their own course
+        if ($this->auth->getRole() === 'instructor' && in_array($userId, explode(',', $course['user_id']))) {
+            return redirect()->back()->with('error', 'Anda tidak dapat mendaftar pada kursus Anda sendiri.');
+        }
+
+        // 1. Check if already enrolled
+        if ($this->enrollmentModel->isEnrolled($userId, $courseId)) {
+            return redirect()->to('/course/' . $courseId)->with('info', 'You are already enrolled in this course.');
         }
 
         // 2. If free course, direct enroll

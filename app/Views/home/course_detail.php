@@ -163,6 +163,13 @@
                     <?php
                     $auth = new \App\Libraries\Auth();
                     if ($auth->isLoggedIn()):
+                        // Prevent instructor from enrolling in their own course
+                        if ($auth->isInstructor() && $auth->getUserId() == $course['user_id']) :
+                    ?>
+                        <a href="#" class="btn btn-secondary w-100 mb-3 disabled" aria-disabled="true">
+                            <i class="fas fa-chalkboard-teacher"></i> You are the Instructor
+                        </a>
+                    <?php else:
                         // Check if already enrolled
                         $enrollmentModel = new \App\Models\EnrollmentModel();
                         $isEnrolled = $enrollmentModel->isEnrolled($auth->getUserId(), $course['id']);
@@ -194,6 +201,7 @@
                             <i class="fas fa-heart"></i> Add to Wishlist
                         </a>
                     <?php endif; endif; ?>
+                    <?php endif; // End of instructor check ?>
                     <?php else: ?>
                         <a href="<?= base_url('/login') ?>" class="btn btn-primary w-100 mb-3">
                             <i class="fas fa-sign-in-alt"></i> Login to Enroll
