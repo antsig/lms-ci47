@@ -8,9 +8,15 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold">Edit Course: <?= esc($course['title']) ?></h4>
-    <a href="<?= base_url('/course/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
-        <i class="fas fa-eye"></i> Preview
-    </a>
+    <?php if (!empty($course['sections'])): ?>
+        <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
+            <i class="fas fa-eye"></i> Preview
+        </a>
+    <?php else: ?>
+        <button class="btn btn-outline-secondary" disabled title="Add sections to preview">
+            <i class="fas fa-eye-slash"></i> Preview
+        </button>
+    <?php endif; ?>
 </div>
 
 <div class="row">

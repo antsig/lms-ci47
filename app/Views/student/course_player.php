@@ -413,13 +413,13 @@
 
 <script>
     // Configuration
-    const IS_LESSON = <?= $current_type == 'lesson' ? 'true' : 'false' ?>;
-    const LESSON_ID = <?= $current_type == 'lesson' ? $current_item['id'] : 'null' ?>;
+    const IS_LESSON = <?= ($current_type == 'lesson' && !empty($current_item)) ? 'true' : 'false' ?>;
+    const LESSON_ID = <?= ($current_type == 'lesson' && !empty($current_item)) ? $current_item['id'] : 'null' ?>;
     const COURSE_ID = <?= $course['id'] ?>;
-    const VIDEO_TYPE = '<?= $current_type == 'lesson' && $current_item['lesson_type'] == 'video' ? $current_item['video_type'] : '' ?>';
-    const VIDEO_PROGRESSION = <?= $current_type == 'lesson' ? ($current_item['video_progression'] ?? 0) : 0 ?>;
-    const HAS_ATTACHMENT = <?= $current_type == 'lesson' && !empty($current_item['attachment']) ? 'true' : 'false' ?>;
-    const LESSON_TYPE = '<?= $current_type == 'lesson' ? $current_item['lesson_type'] : '' ?>';
+    const VIDEO_TYPE = '<?= ($current_type == 'lesson' && !empty($current_item) && $current_item['lesson_type'] == 'video') ? $current_item['video_type'] : '' ?>';
+    const VIDEO_PROGRESSION = <?= ($current_type == 'lesson' && !empty($current_item)) ? ($current_item['video_progression'] ?? 0) : 0 ?>;
+    const HAS_ATTACHMENT = <?= ($current_type == 'lesson' && !empty($current_item) && !empty($current_item['attachment'])) ? 'true' : 'false' ?>;
+    const LESSON_TYPE = '<?= ($current_type == 'lesson' && !empty($current_item)) ? $current_item['lesson_type'] : '' ?>';
     
     // State
     let isCompleted = <?= $current_type == 'lesson' && in_array('lesson_' . $current_item['id'], $completed_items ?? []) ? 'true' : 'false' ?>;

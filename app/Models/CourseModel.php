@@ -142,6 +142,9 @@ class CourseModel extends BaseModel
             // Get enrollment count
             $course['enrollment_count'] = $enrollmentModel->where('course_id', $course['id'])->countAllResults();
 
+            // Get section count
+            $course['section_count'] = $this->db->table('sections')->where('course_id', $course['id'])->countAllResults();
+
             // Get rating
             $course['average_rating'] = $ratingModel->getAverageRating($course['id']);
             $course['rating_count'] = $ratingModel->getTotalRatings($course['id']);

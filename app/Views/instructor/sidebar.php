@@ -17,9 +17,6 @@ if (!$current)
 <a href="<?= base_url('/instructor/courses') ?>" class="<?= ($current == 'courses' || $current == 'edit-course' || $current == 'edit-quiz' || $current == 'edit-assignment') ? 'active' : '' ?>">
     <i class="fas fa-book"></i> My Courses
 </a>
-<a href="<?= base_url('/instructor/create-course') ?>" class="<?= $current == 'create-course' ? 'active' : '' ?>">
-    <i class="fas fa-plus-circle"></i> Create Course
-</a>
 <a href="<?= base_url('/instructor/students') ?>" class="<?= $current == 'students' ? 'active' : '' ?>">
     <i class="fas fa-users"></i> Students
 </a>

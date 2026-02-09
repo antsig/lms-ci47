@@ -12,9 +12,15 @@
         <a href="<?= base_url('/admin/courses') ?>" class="btn btn-outline-secondary me-2">
             <i class="fas fa-arrow-left"></i> Back to List
         </a>
-        <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
-            <i class="fas fa-eye"></i> Preview
-        </a>
+        <?php if (!empty($course['sections'])): ?>
+            <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" target="_blank" class="btn btn-outline-primary">
+                <i class="fas fa-eye"></i> Preview
+            </a>
+        <?php else: ?>
+            <button class="btn btn-outline-secondary" disabled title="Add sections to preview">
+                <i class="fas fa-eye-slash"></i> Preview
+            </button>
+        <?php endif; ?>
     </div>
 </div>
 

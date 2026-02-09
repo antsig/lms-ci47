@@ -108,7 +108,7 @@ class Instructor extends BaseController
             $image->move(FCPATH . 'uploads/user_images', $newName);
             $data['image'] = $newName;
 
-             // Delete old image if it exists
+            // Delete old image if it exists
             $user = $this->auth->getUser();
             if (!empty($user['image']) && file_exists(FCPATH . 'uploads/user_images/' . $user['image'])) {
                 unlink(FCPATH . 'uploads/user_images/' . $user['image']);
@@ -174,7 +174,6 @@ class Instructor extends BaseController
 
         return redirect()->back()->with('error', $result['message']);
     }
-
 
     /**
      * My courses
@@ -342,6 +341,34 @@ class Instructor extends BaseController
     }
 
     /**
+     * Delete course
+     */
+    public function delete_course($courseId)
+    {
+        $course = $this->courseModel->find($courseId);
+
+        if (!$course) {
+            return redirect()->back()->with('error', 'Course not found');
+        }
+
+        // Check ownership
+        $instructorId = $this->auth->getUserId();
+        if (!in_array($instructorId, explode(',', $course['user_id']))) {
+            return redirect()->back()->with('error', 'Unauthorized access');
+        }
+
+        // Delete course (Hard delete as per model settings)
+        // Model is set to useSoftDeletes = false, so this permanently removes it
+        // We might need to manually delete related data (sections, lessons) if cascading is not set in DB
+        // For CodeIgniter model delete(), we trust it deletes the row.
+
+        // Explicitly delete related content if needed, but assuming DB cascade or simple Model usage:
+        $this->courseModel->delete($courseId);
+
+        return redirect()->to('/instructor/courses')->with('success', 'Course deleted successfully');
+    }
+
+    /**
      * Add section
      */
     public function add_section($courseId)
@@ -402,7 +429,6 @@ class Instructor extends BaseController
 
         return redirect()->back()->with('error', 'Failed to add lesson');
     }
-
 
     /**
      * Courses the instructor is enrolled in

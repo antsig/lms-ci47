@@ -63,8 +63,21 @@
                                     <a href="<?= base_url('/instructor/edit-course/' . $course['id']) ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
-                                    <a href="<?= base_url('/course/' . $course['id']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
-                                        <i class="fas fa-eye"></i> View
+                                    
+                                    <?php if (!empty($course['section_count']) && $course['section_count'] > 0): ?>
+                                        <a href="<?= base_url('/student/course-player/' . $course['id']) ?>" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm btn-outline-secondary" disabled title="No content to view">
+                                            <i class="fas fa-eye-slash"></i> View
+                                        </button>
+                                    <?php endif; ?>
+
+                                    <a href="<?= base_url('/instructor/delete-course/' . $course['id']) ?>" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Are you sure you want to delete this course? This action cannot be undone.')">
+                                        <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
                             </tr>

@@ -70,6 +70,7 @@ $routes->group('instructor', ['filter' => 'role:instructor'], function ($routes)
     $routes->post('update-course/(:num)', 'Instructor::update_course/$1');
     $routes->post('add-section/(:num)', 'Instructor::add_section/$1');
     $routes->post('add-lesson/(:num)/(:num)', 'Instructor::add_lesson/$1/$2');
+    $routes->get('delete-course/(:num)', 'Instructor::delete_course/$1');  // Delete course
     $routes->get('students', 'Instructor::students');
     $routes->get('revenue', 'Instructor::revenue');
 
