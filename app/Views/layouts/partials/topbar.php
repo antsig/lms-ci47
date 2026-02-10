@@ -1,5 +1,5 @@
 <!-- Topbar -->
-<div class="topbar">
+<div class="topbar <?= isset($settings['navbar_color']) && $settings['navbar_color'] != 'white' ? 'bg-' . $settings['navbar_color'] . ' text-white' : 'bg-white' ?> shadow-sm">
     <div>
         <button class="btn btn-link link-dark me-2" id="sidebarToggle">
             <i class="fas fa-bars"></i>

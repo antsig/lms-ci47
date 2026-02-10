@@ -2,11 +2,19 @@
 
 <?= $this->section('content') ?>
 
+<?php
+$settings = model('App\Models\BaseModel')->get_settings();
+?>
+
+<?php if (($settings['show_hero'] ?? 'yes') != 'no'): ?>
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
+                <?php if (!empty($settings['home_banner'])): ?>
+                     <img src="<?= base_url('uploads/system/' . $settings['home_banner']) ?>" alt="Hero" class="img-fluid rounded d-lg-none mb-3">
+                <?php endif; ?>
                 <h1 class="display-4 fw-bold mb-4">Learn Without Limits</h1>
                 <p class="lead mb-4">Discover thousands of courses from expert instructors. Start learning today and achieve your goals.</p>
                 <div class="d-flex gap-3">
@@ -15,12 +23,18 @@
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-block">
-                <img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Online+Learning" alt="Hero" class="img-fluid rounded">
+                <?php if (!empty($settings['home_banner'])): ?>
+                    <img src="<?= base_url('uploads/system/' . $settings['home_banner']) ?>" alt="Hero" class="img-fluid rounded">
+                <?php else: ?>
+                    <img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Online+Learning" alt="Hero" class="img-fluid rounded">
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if (($settings['show_stats'] ?? 'yes') != 'no'): ?>
 <!-- Stats Section -->
 <section class="py-5 bg-white">
     <div class="container">
@@ -52,9 +66,11 @@
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if (($settings['show_top_courses'] ?? 'yes') != 'no'): ?>
 <!-- Top Courses -->
-<section class="py-5">
+<section class="py-5 bg-light">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold">Top Rated Courses</h2>
@@ -65,7 +81,7 @@
             <?php if (!empty($top_courses)): ?>
                 <?php foreach ($top_courses as $course): ?>
                     <div class="col">
-                        <div class="card course-card h-100">
+                        <div class="card course-card h-100 bg-white border-0 shadow-sm">
                             <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                  class="card-img-top" alt="<?= esc($course['title']) ?>"
                                  onerror="this.onerror=null;this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
@@ -117,7 +133,9 @@
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if (($settings['show_latest_courses'] ?? 'yes') != 'no'): ?>
 <!-- Latest Courses -->
 <section class="py-5 bg-white">
     <div class="container">
@@ -130,7 +148,7 @@
             <?php if (!empty($latest_courses)): ?>
                 <?php foreach ($latest_courses as $course): ?>
                     <div class="col">
-                        <div class="card course-card h-100">
+                        <div class="card course-card h-100 border-0 shadow-sm">
                             <img src="<?= base_url('/uploads/thumbnails/' . ($course['thumbnail'] ?? 'default.jpg')) ?>" 
                                  class="card-img-top" alt="<?= esc($course['title']) ?>"
                                  onerror="this.onerror=null;this.src='<?= base_url('/uploads/thumbnails/default.jpg') ?>'">
@@ -161,9 +179,11 @@
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if (($settings['show_categories'] ?? 'yes') != 'no'): ?>
 <!-- Categories -->
-<section class="py-5">
+<section class="py-5 bg-light">
     <div class="container">
         <h2 class="fw-bold mb-4 text-center">Browse by Category</h2>
         <div class="row">
@@ -171,7 +191,7 @@
                 <?php foreach (array_slice($categories, 0, 8) as $category): ?>
                     <div class="col-md-3 col-sm-6 mb-4">
                         <a href="<?= base_url('/courses?category=' . $category['id']) ?>" class="text-decoration-none">
-                            <div class="card text-center h-100 category-card">
+                            <div class="card text-center h-100 category-card bg-white border-0 shadow-sm">
                                 <div class="card-body">
                                     <i class="<?= esc($category['font_awesome_class'] ?? 'fas fa-book') ?> fa-3x text-primary mb-3"></i>
                                     <h5 class="card-title"><?= esc($category['name']) ?></h5>
@@ -185,7 +205,9 @@
         </div>
     </div>
 </section>
+<?php endif; ?>
 
+<?php if (($settings['show_cta'] ?? 'yes') != 'no'): ?>
 <!-- CTA Section -->
 <section class="py-5 bg-primary text-white">
     <div class="container text-center">
@@ -194,6 +216,7 @@
         <a href="<?= base_url('/register/instructor') ?>" class="btn btn-light btn-lg">Become an Instructor</a>
     </div>
 </section>
+<?php endif; ?>
 
 <?= $this->endSection() ?>
 

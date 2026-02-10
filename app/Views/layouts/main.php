@@ -1,15 +1,28 @@
+<?php
+$settings = model('App\Models\BaseModel')->get_settings();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'LMS') ?> - Learning Management System</title>
+    <title><?= esc($title ?? 'LMS') ?> - <?= esc($settings['system_name'] ?? 'Learning Management System') ?></title>
     
+    <?php if (!empty($settings['favicon'])): ?>
+    <link rel="icon" href="<?= base_url('uploads/system/' . $settings['favicon']) ?>" type="image/x-icon">
+    <?php else: ?>
+    <link rel="icon" href="<?= base_url('favicon.ico') ?>" type="image/x-icon">
+    <?php endif; ?>
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
+    <?php if (!empty($settings['fa_cdn_url'])): ?>
+    <link rel="stylesheet" href="<?= esc($settings['fa_cdn_url']) ?>">
+    <?php else: ?>
     <link rel="stylesheet" href="<?= base_url('vendor/fontawesome-free/css/all.min.css') ?>">
+    <?php endif; ?>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,10 +33,15 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="<?= base_url('/') ?>">
-                <i class="fas fa-graduation-cap"></i> LMS
+            <a class="navbar-brand d-flex align-items-center" href="<?= base_url('/') ?>">
+                <?php if (!empty($settings['system_logo'])): ?>
+                    <img src="<?= base_url('uploads/system/' . $settings['system_logo']) ?>" alt="Logo" class="img-fluid me-2" style="max-height: 40px;">
+                <?php else: ?>
+                    <i class="fas fa-graduation-cap me-2"></i>
+                <?php endif; ?>
+                <?= esc($settings['system_name'] ?? 'LMS') ?>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -86,11 +104,18 @@
     <?= $this->renderSection('content') ?>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer mt-auto py-3">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5><i class="fas fa-graduation-cap"></i> LMS</h5>
+                    <h5>
+                         <?php if (!empty($settings['system_logo'])): ?>
+                            <img src="<?= base_url('uploads/system/' . $settings['system_logo']) ?>" alt="Logo" class="img-fluid me-2" style="max-height: 30px;">
+                        <?php else: ?>
+                            <i class="fas fa-graduation-cap"></i>
+                        <?php endif; ?>
+                        <?= esc($settings['system_name'] ?? 'LMS') ?>
+                    </h5>
                     <p class="text-muted">Your gateway to quality online education. Learn from the best instructors worldwide.</p>
                 </div>
                 <div class="col-md-4 mb-4">
@@ -111,9 +136,9 @@
                     </p>
                 </div>
             </div>
-            <hr class="bg-light">
+            <hr class="bg-secondary opacity-25">
             <div class="text-center text-muted">
-                <p>&copy; <?= date('Y') ?> LMS. All rights reserved.</p>
+                <p>&copy; <?= date('Y') ?> <?= esc($settings['system_name'] ?? 'Learning Management System') ?>. All rights reserved.</p>
             </div>
         </div>
     </footer>

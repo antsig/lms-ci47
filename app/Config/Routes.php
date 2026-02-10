@@ -155,6 +155,26 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     $routes->get('settings', 'Admin::settings');
     $routes->post('update-settings', 'Admin::update_settings');
 
+    // Page Settings
+    $routes->get('settings/page', 'Admin::page_settings');
+    $routes->post('settings/update-page', 'Admin::update_page_settings');
+
+    // Layout Settings
+    $routes->get('settings/layout', 'Admin::layouting');
+    $routes->post('settings/update-layout', 'Admin::update_layout');
+
+    // Icon Settings
+    $routes->get('settings/icons', 'Admin::icons');
+    $routes->post('settings/update-icons', 'Admin::update_icons');
+
+    // Logo Settings
+    $routes->get('settings/logo', 'Admin::logo');
+    $routes->post('settings/update-logo', 'Admin::update_logo');
+
+    // Banner Settings
+    $routes->get('settings/banner', 'Admin::banner');
+    $routes->post('settings/update-banner', 'Admin::update_banner');
+
     // Certificate Management
     $routes->get('certificates', 'CertificateController::index');
     $routes->get('certificates/create', 'CertificateController::create');

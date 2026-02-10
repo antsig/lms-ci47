@@ -5,12 +5,10 @@ if (!$current)
     $current = 'dashboard';
 ?>
 
-<div class="sidebar-header">Main</div>
 <a href="<?= base_url('/instructor') ?>" class="<?= ($current == 'dashboard' || $current == '') ? 'active' : '' ?>">
     <i class="fas fa-tachometer-alt"></i> <span class="link-text">Dashboard</span>
 </a>
 
-<div class="sidebar-header">Teaching</div>
 <a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#teachingSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['courses', 'edit-course', 'edit-quiz', 'edit-assignment', 'students']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['courses', 'edit-course', 'edit-quiz', 'edit-assignment', 'students']) ? 'true' : 'false' ?>">
     <div class="d-flex align-items-center">
         <i class="fas fa-chalkboard-teacher"></i> <span class="link-text">Teaching</span>
@@ -21,7 +19,6 @@ if (!$current)
     <a href="<?= base_url('/instructor/students') ?>" class="<?= $current == 'students' ? 'active' : '' ?>">My Students</a>
 </div>
 
-<div class="sidebar-header">Details</div>
 <a href="<?= base_url('/instructor/my-learning') ?>" class="<?= ($current == 'my-learning') ? 'active' : '' ?>">
     <i class="fas fa-graduation-cap"></i> <span class="link-text">My Learning</span>
 </a>
@@ -29,7 +26,6 @@ if (!$current)
     <i class="fas fa-dollar-sign"></i> <span class="link-text">Revenue</span>
 </a>
 
-<div class="sidebar-header">Account</div>
 <a href="<?= base_url('/instructor/profile') ?>" class="<?= ($current == 'profile' || $current == 'change-password') ? 'active' : '' ?>">
     <i class="fas fa-user"></i> <span class="link-text">My Profile</span>
 </a>

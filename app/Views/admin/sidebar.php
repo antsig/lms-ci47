@@ -5,7 +5,6 @@ if (!$current)
     $current = 'dashboard';
 ?>
 
-<div class="sidebar-header">Main</div>
 <a href="<?= base_url('/admin/dashboard') ?>" class="<?= ($current == 'dashboard' || $current == '') ? 'active' : '' ?>">
     <i class="fas fa-tachometer-alt"></i> <span class="link-text">Dashboard</span>
 </a>
@@ -22,7 +21,6 @@ if (!$current)
     <a href="<?= base_url('/admin/certificates') ?>" class="<?= $current == 'certificates' ? 'active' : '' ?>">Certificates</a>
 </div>
 
-<div class="sidebar-header">Finance</div>
 <a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#financeSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['payment-requests', 'revenue', 'payment_history']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['payment-requests', 'revenue', 'payment_history']) ? 'true' : 'false' ?>">
     <div class="d-flex align-items-center">
         <i class="fas fa-dollar-sign"></i> <span class="link-text">Finance</span>
@@ -42,15 +40,19 @@ if (!$current)
     <a href="<?= base_url('/admin/payment_history') ?>" class="<?= $current == 'payment_history' ? 'active' : '' ?>">History</a>
 </div>
 
-<div class="sidebar-header">System</div>
-<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#systemSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'users', 'add_user', 'edit_user']) ? 'true' : 'false' ?>">
+<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'true' : 'false' ?>">
     <div class="d-flex align-items-center">
-        <i class="fas fa-cogs"></i> <span class="link-text">System</span>
+        <i class="fas fa-cogs"></i> <span class="link-text">Settings</span>
     </div>
 </a>
-<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user']) ? 'show' : '' ?>" id="systemSubmenu">
+<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'show' : '' ?>" id="settingsSubmenu">
     <a href="<?= base_url('/admin/users') ?>" class="<?= strpos($current, 'user') !== false ? 'active' : '' ?>">Users</a>
-    <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">Settings</a>
+    <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">System Settings</a>
+    <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
+    <a href="<?= base_url('/admin/settings/layout') ?>" class="<?= $current == 'layout' ? 'active' : '' ?>">Home Layout</a>
+    <a href="<?= base_url('/admin/settings/icons') ?>" class="<?= $current == 'icons' ? 'active' : '' ?>">Manage Icons</a>
+    <a href="<?= base_url('/admin/settings/logo') ?>" class="<?= $current == 'logo' ? 'active' : '' ?>">Logo</a>
+    <a href="<?= base_url('/admin/settings/banner') ?>" class="<?= $current == 'banner' ? 'active' : '' ?>">Banner</a>
 </div>
 
 <hr>

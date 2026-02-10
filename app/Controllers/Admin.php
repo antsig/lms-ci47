@@ -448,6 +448,199 @@ class Admin extends BaseController
         return redirect()->back()->with('success', 'Settings updated successfully');
     }
 
+    /**
+     * Page settings (Meta, Titles, etc.)
+     */
+    public function page_settings()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Page Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/page_settings', $data);
+    }
+
+    /**
+     * Update page settings
+     */
+    public function update_page_settings()
+    {
+        $settings = $this->request->getPost('settings');
+
+        if ($settings) {
+            foreach ($settings as $key => $value) {
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Page settings updated successfully');
+    }
+
+    /**
+     * Layout settings
+     */
+    public function layouting()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Layout Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/layouting', $data);
+    }
+
+    /** Update layout settings */
+
+    /**
+     * Update layout settings
+     */
+    public function update_layout()
+    {
+        $settings = $this->request->getPost('settings');
+
+        // Checkboxes handling: if unchecked, they are not sent. We must forcefully set them to 'no' if missing.
+        $checkboxes = ['show_hero', 'show_stats', 'show_top_courses', 'show_latest_courses', 'show_categories', 'show_cta'];
+
+        if ($settings) {
+            foreach ($checkboxes as $check) {
+                if (!isset($settings[$check])) {
+                    $settings[$check] = 'no';
+                }
+            }
+
+            foreach ($settings as $key => $value) {
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Layout settings updated successfully');
+    }
+
+    /**
+     * Icon settings
+     */
+    public function icons()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Manage Icons',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/icons', $data);
+    }
+
+    /**
+     * Update icon settings
+     */
+    public function update_icons()
+    {
+        // This might just be an info page or a way to select an icon pack if supported.
+        // For now, let's allow storing a CDN URL for custom icons.
+
+        $settings = $this->request->getPost('settings');
+
+        if ($settings) {
+            foreach ($settings as $key => $value) {
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Icon settings updated successfully');
+    }
+
+    /**
+     * Logo settings
+     */
+    public function logo()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Logo Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/logo', $data);
+    }
+
+    /** Update logo settings */
+
+    /**
+     * Update logo settings
+     */
+    public function update_logo()
+    {
+        $this->_handle_upload('system_logo', 'system_logo', 'uploads/system');
+        $this->_handle_upload('favicon', 'favicon', 'uploads/system');
+
+        return redirect()->back()->with('success', 'Logo settings updated successfully');
+    }
+
+    /**
+     * Banner settings
+     */
+    public function banner()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Banner Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/banner', $data);
+    }
+
+    /**
+     * Update banner settings
+     */
+    public function update_banner()
+    {
+        $this->_handle_upload('login_banner', 'login_banner', 'uploads/system');
+        $this->_handle_upload('home_banner', 'home_banner', 'uploads/system');
+
+        return redirect()->back()->with('success', 'Banner settings updated successfully');
+    }
+
+    /**
+     * Helper to handle file upload and delete old file
+     */
+    private function _handle_upload($inputName, $settingKey, $uploadPath)
+    {
+        $file = $this->request->getFile($inputName);
+
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            // Get old file name
+            $oldFile = $this->baseModel->get_settings($settingKey);
+
+            // Generate new name
+            $newName = $file->getRandomName();
+
+            // Move new file
+            if ($file->move(FCPATH . $uploadPath, $newName)) {
+                // Update database
+                $this->baseModel->update_settings($settingKey, $newName);
+
+                // Delete old file if exists and not empty
+                if (!empty($oldFile) && file_exists(FCPATH . $uploadPath . '/' . $oldFile)) {
+                    unlink(FCPATH . $uploadPath . '/' . $oldFile);
+                }
+            }
+        }
+    }
+
     // ==================== COURSE CREATION (ADMIN) ====================
 
     /**

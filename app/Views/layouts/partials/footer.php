@@ -1,6 +1,6 @@
 <footer class="mt-auto py-3 bg-white border-top">
     <div class="container-fluid text-center">
-        <span class="text-muted text-sm">&copy; <?= date('Y') ?> Learning Management System. All rights reserved.</span>
+        <span class="text-muted text-sm">&copy; <?= date('Y') ?> <?= esc($settings['system_name'] ?? 'Learning Management System') ?>. All rights reserved.</span>
     </div>
 </footer>
 
