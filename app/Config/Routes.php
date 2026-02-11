@@ -107,6 +107,8 @@ $routes->group('payment', ['filter' => 'auth'], function ($routes) {
 $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     $routes->get('/', 'Admin::index');
     $routes->get('dashboard', 'Admin::index');
+    $routes->get('profile', 'Admin::profile');
+    $routes->post('profile/update', 'Admin::update_profile');
 
     // User Management
     $routes->get('users', 'Admin::users');
@@ -174,6 +176,18 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     // Banner Settings
     $routes->get('settings/banner', 'Admin::banner');
     $routes->post('settings/update-banner', 'Admin::update_banner');
+
+    // About Page Settings
+    $routes->get('settings/about', 'Admin::about');
+    $routes->post('settings/update-about', 'Admin::update_about');
+
+    // Team Management
+    $routes->get('team', 'Admin::team');
+    $routes->get('team/create', 'Admin::create_team_member');
+    $routes->post('team/store', 'Admin::store_team_member');
+    $routes->get('team/edit/(:num)', 'Admin::edit_team_member/$1');
+    $routes->post('team/update/(:num)', 'Admin::update_team_member/$1');
+    $routes->get('team/delete/(:num)', 'Admin::delete_team_member/$1');
 
     // Certificate Management
     $routes->get('certificates', 'CertificateController::index');

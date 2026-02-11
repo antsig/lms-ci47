@@ -46,9 +46,11 @@ if (!$current)
     </div>
 </a>
 <div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'show' : '' ?>" id="settingsSubmenu">
+    <a href="<?= base_url('/admin/team') ?>" class="<?= strpos($current, 'team') !== false ? 'active' : '' ?>">Team Management</a>
     <a href="<?= base_url('/admin/users') ?>" class="<?= strpos($current, 'user') !== false ? 'active' : '' ?>">Users</a>
     <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">System Settings</a>
     <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
+    <a href="<?= base_url('/admin/settings/about') ?>" class="<?= strpos(uri_string(), 'settings/about') !== false ? 'active' : '' ?>">About Page</a>
     <a href="<?= base_url('/admin/settings/layout') ?>" class="<?= $current == 'layout' ? 'active' : '' ?>">Home Layout</a>
     <a href="<?= base_url('/admin/settings/icons') ?>" class="<?= $current == 'icons' ? 'active' : '' ?>">Manage Icons</a>
     <a href="<?= base_url('/admin/settings/logo') ?>" class="<?= $current == 'logo' ? 'active' : '' ?>">Logo</a>

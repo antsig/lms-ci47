@@ -69,6 +69,73 @@ class Admin extends BaseController
         return view('admin/dashboard', $data);
     }
 
+    /**
+     * Admin Profile
+     */
+    public function profile()
+    {
+        $data = [
+            'title' => 'My Profile',
+            'user' => $this->auth->getUser(),
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/profile', $data);
+    }
+
+    /**
+     * Update Admin Profile
+     */
+    public function update_profile()
+    {
+        $userId = $this->auth->getUserId();
+
+        $rules = [
+            'first_name' => 'required|min_length[2]',
+            'last_name' => 'required|min_length[2]',
+            'email' => "required|valid_email|is_unique[users.email,id,{$userId}]",
+            'phone' => 'permit_empty'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'first_name' => $this->request->getPost('first_name'),
+            'last_name' => $this->request->getPost('last_name'),
+            'email' => $this->request->getPost('email'),
+            'phone' => $this->request->getPost('phone'),
+            'biography' => $this->request->getPost('biography')
+        ];
+
+        // Handle profile image upload
+        $image = $this->request->getFile('image');
+        if ($image && $image->isValid()) {
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'uploads/user_images', $newName);
+            $data['image'] = $newName;
+        }
+
+        // Handle signature upload
+        $signature = $this->request->getFile('signature');
+        if ($signature && $signature->isValid()) {
+            $newSigName = $signature->getRandomName();
+            $signature->move(FCPATH . 'uploads/signatures', $newSigName);
+            $data['signature'] = $newSigName;
+
+            // Delete old signature if it exists
+            $user = $this->userModel->find($userId);
+            if (!empty($user['signature']) && file_exists(FCPATH . 'uploads/signatures/' . $user['signature'])) {
+                unlink(FCPATH . 'uploads/signatures/' . $user['signature']);
+            }
+        }
+
+        $this->userModel->updateUser($userId, $data);
+
+        return redirect()->back()->with('success', 'Profile updated successfully');
+    }
+
     // ==================== USER MANAGEMENT ====================
 
     /**
@@ -612,6 +679,195 @@ class Admin extends BaseController
         $this->_handle_upload('home_banner', 'home_banner', 'uploads/system');
 
         return redirect()->back()->with('success', 'Banner settings updated successfully');
+    }
+
+    /**
+     * About Page settings
+     */
+    public function about()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'About Page Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/about', $data);
+    }
+
+    /**
+     * Update about page settings
+     */
+    public function update_about()
+    {
+        $this->_handle_upload('about_us_image', 'about_us_image', 'uploads/system');
+
+        $settings = $this->request->getPost('settings');
+        if ($settings) {
+            foreach ($settings as $key => $value) {
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'About page settings updated successfully');
+    }
+
+    // ==================== TEAM MANAGEMENT ====================
+
+    /**
+     * List Team Members
+     */
+    public function team()
+    {
+        $teamModel = new \App\Models\TeamModel();
+
+        $data = [
+            'title' => 'Team Management',
+            'team_members' => $teamModel->orderBy('display_order', 'ASC')->findAll(),
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/team/index', $data);
+    }
+
+    /**
+     * Create Team Member Form
+     */
+    public function create_team_member()
+    {
+        $data = [
+            'title' => 'Add Team Member',
+            'instructors' => $this->userModel->getInstructors(),
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/team/create', $data);
+    }
+
+    /**
+     * Store Team Member
+     */
+    public function store_team_member()
+    {
+        $rules = [
+            'type' => 'required',  // 'instructor' or 'manual'
+        ];
+
+        if ($this->request->getPost('type') == 'instructor') {
+            $rules['user_id'] = 'required|numeric';
+        } else {
+            $rules['name'] = 'required|min_length[3]';
+            $rules['role'] = 'required';
+        }
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data = [
+            'user_id' => $this->request->getPost('user_id') ?: null,
+            'name' => $this->request->getPost('name'),
+            'role' => $this->request->getPost('role'),
+            'biography' => $this->request->getPost('biography'),
+            'display_order' => $this->request->getPost('display_order') ?: 0,
+            'status' => 1,
+            'created_at' => time(),
+            'updated_at' => time()
+        ];
+
+        // If instructor selected, try to pull data if fields are empty?
+        // Logic: The View should probably handle pre-filling via JS, OR we just save the ID and let the Model handle display merging.
+        // Let's rely on Model merging for display, but allow overrides if entered.
+
+        // Handle image upload for manual entry or override
+        $image = $this->request->getFile('image');
+        if ($image && $image->isValid()) {
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'uploads/team', $newName);
+            $data['image'] = $newName;
+        }
+
+        $teamModel = new \App\Models\TeamModel();
+        $teamModel->insert($data);
+
+        return redirect()->to('/admin/team')->with('success', 'Team member added successfully');
+    }
+
+    /**
+     * Edit Team Member
+     */
+    public function edit_team_member($id)
+    {
+        $teamModel = new \App\Models\TeamModel();
+        $member = $teamModel->find($id);
+
+        if (!$member) {
+            return redirect()->to('/admin/team')->with('error', 'Member not found');
+        }
+
+        $data = [
+            'title' => 'Edit Team Member',
+            'member' => $member,
+            'instructors' => $this->userModel->getInstructors(),
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/team/edit', $data);
+    }
+
+    /**
+     * Update Team Member
+     */
+    public function update_team_member($id)
+    {
+        $teamModel = new \App\Models\TeamModel();
+
+        $data = [
+            'user_id' => $this->request->getPost('user_id') ?: null,
+            'name' => $this->request->getPost('name'),
+            'role' => $this->request->getPost('role'),
+            'biography' => $this->request->getPost('biography'),
+            'display_order' => $this->request->getPost('display_order') ?: 0,
+            'status' => $this->request->getPost('status'),
+            'updated_at' => time()
+        ];
+
+        $image = $this->request->getFile('image');
+        if ($image && $image->isValid()) {
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'uploads/team', $newName);
+            $data['image'] = $newName;
+
+            // Delete old image if not external/user link (how to check? manually uploaded images are in 'uploads/team')
+            $oldMember = $teamModel->find($id);
+            if (!empty($oldMember['image']) && file_exists(FCPATH . 'uploads/team/' . $oldMember['image'])) {
+                unlink(FCPATH . 'uploads/team/' . $oldMember['image']);
+            }
+        }
+
+        $teamModel->update($id, $data);
+
+        return redirect()->to('/admin/team')->with('success', 'Team member updated successfully');
+    }
+
+    /**
+     * Delete Team Member
+     */
+    public function delete_team_member($id)
+    {
+        $teamModel = new \App\Models\TeamModel();
+        $member = $teamModel->find($id);
+
+        if ($member) {
+            if (!empty($member['image']) && file_exists(FCPATH . 'uploads/team/' . $member['image'])) {
+                unlink(FCPATH . 'uploads/team/' . $member['image']);
+            }
+            $teamModel->delete($id);
+        }
+
+        return redirect()->back()->with('success', 'Team member deleted successfully');
     }
 
     /**

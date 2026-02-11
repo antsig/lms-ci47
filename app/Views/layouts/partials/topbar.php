@@ -34,6 +34,8 @@
             <ul class="dropdown-menu dropdown-menu-end">
                 <?php if ($auth->isInstructor()): ?>
                 <li><a class="dropdown-item" href="<?= base_url('/instructor/profile') ?>"><i class="fas fa-user"></i> Profile</a></li>
+                <?php elseif ($auth->isAdmin()): ?>
+                <li><a class="dropdown-item" href="<?= base_url('/admin/profile') ?>"><i class="fas fa-user"></i> Profile</a></li>
                 <?php else: ?>
                 <li><a class="dropdown-item" href="<?= base_url('/student/profile') ?>"><i class="fas fa-user"></i> Profile</a></li>
                 <?php endif; ?>

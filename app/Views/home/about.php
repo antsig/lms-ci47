@@ -2,11 +2,15 @@
 
 <?= $this->section('content') ?>
 
+<?php
+$settings = model('App\Models\BaseModel')->get_settings();
+?>
+
 <div class="container py-5">
     <!-- Header Section -->
     <div class="row justify-content-center text-center mb-5">
         <div class="col-lg-8">
-            <h1 class="fw-bold">About Our Learning Platform</h1>
+            <h1 class="fw-bold"><?= esc($settings['about_us_title'] ?? 'About Our Learning Platform') ?></h1>
             <p class="lead text-muted">Discover our mission, vision, and the team dedicated to empowering learners everywhere.</p>
         </div>
     </div>
@@ -15,14 +19,19 @@
     <div class="row align-items-center mb-5">
         <div class="col-md-6">
             <h2 class="fw-bold mb-3">Our Mission</h2>
-            <p>To make quality education accessible to everyone, anywhere, at any time. We believe in a world where anyone can build their future through flexible, affordable, and engaging learning.</p>
-            <p>Our platform connects expert instructors with eager students, creating a vibrant community where knowledge is shared and skills are honed for the future.</p>
+            <div>
+                <?= $settings['about_us_content'] ?? '<p>To make quality education accessible to everyone, anywhere, at any time. We believe in a world where anyone can build their future through flexible, affordable, and engaging learning.</p><p>Our platform connects expert instructors with eager students, creating a vibrant community where knowledge is shared and skills are honed for the future.</p>' ?>
+            </div>
             <a href="<?= base_url('/courses') ?>" class="btn btn-primary mt-3">
                 <i class="fas fa-search me-2"></i>Explore Courses
             </a>
         </div>
         <div class="col-md-6 text-center">
-            <img src="https://via.placeholder.com/400x300.png?text=Our+Mission" class="img-fluid rounded-3 shadow" alt="Our Mission">
+            <?php if (!empty($settings['about_us_image'])): ?>
+                <img src="<?= base_url('uploads/system/' . $settings['about_us_image']) ?>" class="img-fluid rounded-3 shadow" alt="About Us">
+            <?php else: ?>
+                <img src="https://via.placeholder.com/400x300.png?text=Our+Mission" class="img-fluid rounded-3 shadow" alt="Our Mission">
+            <?php endif; ?>
         </div>
     </div>
 
@@ -61,36 +70,47 @@
     </div>
 
     <!-- Meet the Team Section -->
+    <?php if (($settings['about_us_show_team'] ?? '1') == '1'): ?>
     <div class="row text-center justify-content-center mb-5">
         <h2 class="fw-bold mb-4">Meet Our Team</h2>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0">
-                <img src="https://via.placeholder.com/150.png?text=User" class="rounded-circle mx-auto d-block" alt="Team Member 1" style="width: 150px;">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Alex Doe</h5>
-                    <p class="card-text text-muted">Lead Instructor</p>
+        
+        <?php if (empty($team_members)): ?>
+            <p class="text-muted">Our team is growing! check back soon.</p>
+        <?php else: ?>
+            <?php foreach ($team_members as $member): ?>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card border-0">
+                        <?php
+                        $imgSrc = base_url('uploads/system/placeholder.png');  // Default fallback?
+                        // Use logic similar to Admin but user data is already merged by Model
+                        if (!empty($member['image'])) {
+                            if (file_exists(FCPATH . 'uploads/team/' . $member['image'])) {
+                                $imgSrc = base_url('uploads/team/' . $member['image']);
+                            } elseif (file_exists(FCPATH . 'uploads/user_images/' . $member['image'])) {
+                                $imgSrc = base_url('uploads/user_images/' . $member['image']);
+                            } else {
+                                // Fallback if file missing but name exists in DB
+                                $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($member['name']) . '&background=random';
+                            }
+                        } else {
+                            // Fallback if no image at all
+                            $imgSrc = 'https://ui-avatars.com/api/?name=' . urlencode($member['name']) . '&background=random';
+                        }
+                        ?>
+                        <img src="<?= $imgSrc ?>" class="rounded-circle mx-auto d-block object-fit-cover" alt="<?= esc($member['name']) ?>" style="width: 150px; height: 150px;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold unselectable"><?= esc($member['name']) ?></h5>
+                            <p class="card-text text-muted small"><?= esc($member['role']) ?></p>
+                            <?php if (!empty($member['biography'])): ?>
+                                <p class="card-text small text-muted d-none d-md-block"><?= character_limiter(strip_tags($member['biography']), 60) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0">
-                <img src="https://via.placeholder.com/150.png?text=User" class="rounded-circle mx-auto d-block" alt="Team Member 2" style="width: 150px;">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Jane Smith</h5>
-                    <p class="card-text text-muted">Platform Manager</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0">
-                <img src="https://via.placeholder.com/150.png?text=User" class="rounded-circle mx-auto d-block" alt="Team Member 3" style="width: 150px;">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Sam Wilson</h5>
-                    <p class="card-text text-muted">Community Support</p>
-                </div>
-            </div>
-        </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
+    <?php endif; ?>
 
     <!-- Join Our Community Section -->
     <div class="row justify-content-center text-center">

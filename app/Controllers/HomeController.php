@@ -153,8 +153,11 @@ class HomeController extends BaseController
      */
     public function about()
     {
+        $teamModel = new \App\Models\TeamModel();
+
         $data = [
-            'title' => 'About Us'
+            'title' => 'About Us',
+            'team_members' => $teamModel->getTeamForDisplay()
         ];
 
         return view('home/about', $data);
