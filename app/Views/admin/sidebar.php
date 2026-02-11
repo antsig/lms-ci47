@@ -66,7 +66,7 @@ if (!$current)
     </div>
 </a>
 <div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner', 'contact_settings']) ? 'show' : '' ?>" id="settingsSubmenu">
-    <a href="<?= base_url('/admin/features') ?>" class="<?= strpos(uri_string(), 'features') !== false ? 'active' : '' ?>">Website Features</a>
+    <!-- <a href="<?= base_url('/admin/features') ?>" class="<?= strpos(uri_string(), 'features') !== false ? 'active' : '' ?>">Website Features</a> -->
     <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">System Settings</a>
     <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
     <a href="<?= base_url('/admin/settings/about') ?>" class="<?= strpos(uri_string(), 'settings/about') !== false ? 'active' : '' ?>">About Page</a>

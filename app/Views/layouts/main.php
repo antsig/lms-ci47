@@ -130,9 +130,9 @@ $settings = model('App\Models\BaseModel')->get_settings();
                 <div class="col-md-4 mb-4">
                     <h5>Contact Info</h5>
                     <p class="text-muted">
-                        <i class="fas fa-envelope"></i> info@lms.com<br>
-                        <i class="fas fa-phone"></i> +62 123 456 789<br>
-                        <i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia
+                        <i class="fas fa-envelope me-2"></i> <?= esc($settings['contact_email'] ?? 'info@lms.com') ?><br>
+                        <i class="fas fa-phone me-2"></i> <?= esc($settings['contact_phone'] ?? '+62 123 456 789') ?><br>
+                        <i class="fas fa-map-marker-alt me-2"></i> <?= esc($settings['contact_address'] ?? 'Jakarta, Indonesia') ?>
                     </p>
                 </div>
             </div>

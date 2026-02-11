@@ -767,7 +767,7 @@ class Admin extends BaseController
                 'display_order' => $this->request->getPost('display_order')
             ]);
 
-            return redirect()->to('/admin/features')->with('success', 'Feature created successfully');
+            return redirect()->to('/admin/about')->with('success', 'Feature created successfully');
         }
 
         $data = [
@@ -796,7 +796,7 @@ class Admin extends BaseController
                 'display_order' => $this->request->getPost('display_order')
             ]);
 
-            return redirect()->to('/admin/features')->with('success', 'Feature updated successfully');
+            return redirect()->to('/admin/about')->with('success', 'Feature updated successfully');
         }
 
         $data = [
@@ -812,7 +812,7 @@ class Admin extends BaseController
     {
         $featureModel = new \App\Models\FeatureModel();
         $featureModel->delete($id);
-        return redirect()->to('/admin/features')->with('success', 'Feature deleted successfully');
+        return redirect()->to('/admin/about')->with('success', 'Feature deleted successfully');
     }
 
     /**
@@ -832,10 +832,12 @@ class Admin extends BaseController
     public function about()
     {
         $settings = $this->baseModel->get_settings();
+        $featureModel = new \App\Models\FeatureModel();  // Load Feature Model
 
         $data = [
             'title' => 'About Page Settings',
             'settings' => $settings,
+            'features' => $featureModel->orderBy('display_order', 'ASC')->findAll(),  // Fetch features
             'validation' => \Config\Services::validation()
         ];
 

@@ -381,6 +381,51 @@ body.sidebar-collapsed .sidebar-menu a:hover {
   border-radius: 8px;
 }
 
+/* Force Dark Mode Sidebar Text Visibility */
+.sidebar.bg-dark .sidebar-menu a {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.sidebar.bg-dark .sidebar-menu a:hover,
+.sidebar.bg-dark .sidebar-menu a.active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.sidebar.bg-dark .sidebar-brand {
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.bg-dark .sidebar-dropdown-toggle::after {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Fix Dark Mode Submenu Background & Text */
+.sidebar.bg-dark .sidebar-submenu {
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.2
+  ) !important; /* Darker than main sidebar */
+}
+
+.sidebar.bg-dark .sidebar-submenu a {
+  color: rgba(
+    255,
+    255,
+    255,
+    0.7
+  ) !important; /* Slightly distinct from main level */
+}
+
+.sidebar.bg-dark .sidebar-submenu a:hover,
+.sidebar.bg-dark .sidebar-submenu a.active {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .sidebar {
