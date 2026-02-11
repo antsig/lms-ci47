@@ -33,6 +33,7 @@ class UserModel extends BaseModel
         'signature',
         'otp_code',
         'otp_expires_at',
+        'authenticator_secret',
     ];
 
     // Dates

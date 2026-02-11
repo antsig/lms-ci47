@@ -36,6 +36,22 @@ class Auth
             $settings = model('App\Models\BaseModel')->get_settings();
             $otpEnabled = isset($settings['otp_enabled']) && $settings['otp_enabled'] === 'yes';
 
+            // Check if user has Authenticator App enabled (High Priority)
+            if (!empty($user['authenticator_secret'])) {
+                // Store temporary session for OTP verification
+                $this->session->set('temp_otp_user_id', $user['id']);
+                $this->session->set('temp_remember', $remember);
+                $this->session->set('otp_method', 'authenticator');  // Flag to indicate method
+
+                return [
+                    'success' => true,
+                    'otp_required' => true,
+                    'otp_method' => 'authenticator',
+                    'message' => 'Please enter the code from your Authenticator App.'
+                ];
+            }
+
+            // Fallback to Email OTP if globally enabled
             if ($otpEnabled) {
                 // Generate and Send OTP
                 $otpSent = $this->sendOTP($user);
@@ -44,6 +60,7 @@ class Auth
                     // Store temporary session for OTP verification
                     $this->session->set('temp_otp_user_id', $user['id']);
                     $this->session->set('temp_remember', $remember);
+                    $this->session->set('otp_method', 'email');  // Flag to indicate method
 
                     $msg = 'Please enter the OTP sent to your email.';
                     if (ENVIRONMENT === 'development' && is_string($otpSent)) {
@@ -53,6 +70,7 @@ class Auth
                     return [
                         'success' => true,
                         'otp_required' => true,
+                        'otp_method' => 'email',
                         'message' => $msg
                     ];
                 } else {
@@ -164,6 +182,7 @@ class Auth
     {
         $userId = $this->session->get('temp_otp_user_id');
         $remember = $this->session->get('temp_remember');
+        $otpMethod = $this->session->get('otp_method');
 
         if (!$userId) {
             return [
@@ -173,13 +192,29 @@ class Auth
         }
 
         $user = $this->userModel->find($userId);
+        $isValid = false;
 
-        if ($user && $user['otp_code'] == $otp && strtotime($user['otp_expires_at']) > time()) {
+        if ($otpMethod === 'authenticator') {
+            // Verify TOTP
+            if (!empty($user['authenticator_secret'])) {
+                $totp = new \App\Libraries\TOTP();
+                if ($totp->verifyCode($user['authenticator_secret'], $otp)) {
+                    $isValid = true;
+                }
+            }
+        } else {
+            // Verify Email OTP
+            if ($user && $user['otp_code'] == $otp && strtotime($user['otp_expires_at']) > time()) {
+                $isValid = true;
+            }
+        }
+
+        if ($isValid) {
             // Clear OTP
             $this->userModel->update($userId, ['otp_code' => null, 'otp_expires_at' => null]);
 
             // Clear temp session
-            $this->session->remove(['temp_otp_user_id', 'temp_remember']);
+            $this->session->remove(['temp_otp_user_id', 'temp_remember', 'otp_method']);
 
             // --- ORIGINAL LOGIN LOGIC ---
             // Set session data

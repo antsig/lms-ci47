@@ -136,6 +136,177 @@ class Admin extends BaseController
         return redirect()->back()->with('success', 'Profile updated successfully');
     }
 
+    /**
+     * Setup Authenticator
+     */
+    public function setup_authenticator()
+    {
+        $userId = $this->auth->getUserId();
+        $user = $this->userModel->find($userId);
+
+        $totp = new \App\Libraries\TOTP();
+
+        // Generate new secret if not exists or if requested
+        $secret = $totp->generateSecret();
+
+        // In a real app, we might want to temporarily store this secret in session
+        // until verified, but for simplicity we'll generate it on the fly for the view
+        // and only save it to DB once verified.
+
+        // Actually, to verify we need to know what secret we showed them.
+        // Let's store it in session.
+        session()->set('temp_totp_secret', $secret);
+
+        $systemName = $this->baseModel->get_settings('system_name') ?? 'LMS';
+        $qrCodeUrl = $totp->getProvisioningUri($secret, $user['email'], $systemName);
+
+        // We can use a JS library to render QR, or a Google Chart API
+        // For simplicity and reliability without external JS deps for now (or asking user),
+        // we will pass the secret and the otpauth URI.
+        // The view can use a simple QR code generator library like qrcode.js if available,
+        // or we can use a reliable public API for now (Google Chart is deprecated but works, or goqr.me)
+        // Let's use goqr.me for now as it is simple.
+
+        $qrImage = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrCodeUrl);
+
+        return $this->response->setJSON([
+            'secret' => $secret,
+            'qr_image' => $qrImage,
+            'manual_uri' => $qrCodeUrl
+        ]);
+    }
+
+    /**
+     * Verify Authenticator Setup
+     */
+    public function verify_authenticator()
+    {
+        $code = $this->request->getPost('code');
+        $secret = session()->get('temp_totp_secret');
+
+        if (!$secret) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Session expired. Please refresh.']);
+        }
+
+        $totp = new \App\Libraries\TOTP();
+        if ($totp->verifyCode($secret, $code)) {
+            // Success! Save secret to user
+            $userId = $this->auth->getUserId();
+            $this->userModel->update($userId, ['authenticator_secret' => $secret]);
+            session()->remove('temp_totp_secret');
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Authenticator set up successfully!']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Invalid code. Please try again.']);
+    }
+
+    /**
+     * Disable Authenticator (Secure)
+     */
+    public function disable_authenticator()
+    {
+        $code = $this->request->getPost('code');
+        $userId = $this->auth->getUserId();
+        $user = $this->userModel->find($userId);
+
+        if (!$code) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Please enter the code.']);
+        }
+
+        $isValid = false;
+
+        // 1. Check Authenticator Code
+        if (!empty($user['authenticator_secret'])) {
+            $totp = new \App\Libraries\TOTP();
+            if ($totp->verifyCode($user['authenticator_secret'], $code)) {
+                $isValid = true;
+            }
+        }
+
+        // 2. Check Email OTP (Fallback)
+        $sessionOtp = session()->get('disable_auth_otp');
+        if (!$isValid && $sessionOtp && $sessionOtp == $code) {
+            $isValid = true;
+        }
+
+        if ($isValid) {
+            // Disable it
+            $this->userModel->update($userId, ['authenticator_secret' => null]);
+            session()->remove('disable_auth_otp');
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Two-Factor Authentication disabled successfully.']);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Invalid code. Please try again.']);
+    }
+
+    /**
+     * Send OTP for Disabling Authenticator
+     */
+    public function send_disable_otp()
+    {
+        $userId = $this->auth->getUserId();
+        $user = $this->userModel->find($userId);
+
+        // Generate random OTP
+        $otp = random_string('numeric', 6);
+        session()->set('disable_auth_otp', $otp);
+
+        // Send Email
+        $emailService = \Config\Services::email();
+        $settings = $this->baseModel->get_settings();
+
+        // (Reuse basic email config logic or helper if available, for now simple send)
+        if (!empty($settings['smtp_host'])) {
+            // ... duplicate config init ...
+            // Ideally this should be in a helper, but reusing Auth library logic is best
+            // Let's use the Auth library instance we already have
+        }
+
+        // We can use Auth library's sendOTP but that updates the user DB 'otp_code' column
+        // forcing a login-like state. For "confirmation" actions, we might prefer a session-based OTP
+        // to avoid messing with login tokens. But reusing Auth::sendOTP is easier.
+        // HOWEVER, Auth::sendOTP updates 'otp_code' in DB.
+        // Let's stick to session based for this specific action to be cleaner.
+
+        // Re-init email config manually for now (or extract to private method)
+        if (!empty($settings['smtp_host'])) {
+            $config = [
+                'protocol' => 'smtp',
+                'SMTPHost' => $settings['smtp_host'],
+                'SMTPUser' => $settings['smtp_user'] ?? '',
+                'SMTPPass' => $settings['smtp_pass'] ?? '',
+                'SMTPPort' => (int) ($settings['smtp_port'] ?? 587),
+                'SMTPCrypto' => $settings['smtp_crypto'] ?? 'tls',
+                'mailType' => 'html',
+                'charset' => 'utf-8',
+                'newline' => ("\r\n"),
+                'wordWrap' => true
+            ];
+            $emailService->initialize($config);
+        }
+
+        $emailService->setTo($user['email']);
+        $emailService->setFrom($settings['system_email'] ?? 'no-reply@lms.com', $settings['system_name'] ?? 'LMS');
+        $emailService->setSubject('Security Verification Code');
+        $emailService->setMessage("Your verification code to disable 2FA is: <strong>$otp</strong>");
+
+        if ($emailService->send()) {
+            $msg = 'Code sent to email.';
+            if (ENVIRONMENT === 'development')
+                $msg .= " (Dev: $otp)";
+            return $this->response->setJSON(['success' => true, 'message' => $msg]);
+        }
+
+        // Return success in dev mode even if fail
+        if (ENVIRONMENT === 'development') {
+            return $this->response->setJSON(['success' => true, 'message' => "Email failed but Dev Code: $otp"]);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Failed to send email.']);
+    }
+
     // ==================== USER MANAGEMENT ====================
 
     /**
@@ -502,6 +673,7 @@ class Admin extends BaseController
         $data = [
             'title' => 'System Settings',
             'settings' => $settings,
+            'user' => $this->auth->getUser(),
             'validation' => \Config\Services::validation()
         ];
 
@@ -515,13 +687,18 @@ class Admin extends BaseController
     {
         $settings = $this->request->getPost('settings');
 
+        // Handle OTP Checkbox: If unchecked, it's missing from POST, so force 'no'
+        if ($settings && !isset($settings['otp_enabled'])) {
+            $settings['otp_enabled'] = 'no';
+        }
+
         if ($settings) {
             foreach ($settings as $key => $value) {
                 $this->baseModel->update_settings($key, $value);
             }
         }
 
-        return redirect()->back()->with('success', 'Settings updated successfully');
+        return redirect()->to('admin/settings')->with('success', 'Settings updated successfully');
     }
 
     /**
@@ -553,7 +730,7 @@ class Admin extends BaseController
             }
         }
 
-        return redirect()->back()->with('success', 'Page settings updated successfully');
+        return redirect()->to('admin/settings/page')->with('success', 'Page settings updated successfully');
     }
 
     /**
@@ -596,7 +773,7 @@ class Admin extends BaseController
             }
         }
 
-        return redirect()->back()->with('success', 'Layout settings updated successfully');
+        return redirect()->to('admin/settings/layout')->with('success', 'Layout settings updated successfully');
     }
 
     /**
@@ -631,7 +808,7 @@ class Admin extends BaseController
             }
         }
 
-        return redirect()->back()->with('success', 'Icon settings updated successfully');
+        return redirect()->to('admin/settings/icons')->with('success', 'Icon settings updated successfully');
     }
 
     /**
@@ -660,7 +837,7 @@ class Admin extends BaseController
         $this->_handle_upload('system_logo', 'system_logo', 'uploads/system');
         $this->_handle_upload('favicon', 'favicon', 'uploads/system');
 
-        return redirect()->back()->with('success', 'Logo settings updated successfully');
+        return redirect()->to('admin/settings/logo')->with('success', 'Logo settings updated successfully');
     }
 
     /**
@@ -709,7 +886,7 @@ class Admin extends BaseController
             }
         }
 
-        return redirect()->back()->with('success', 'Contact settings updated successfully');
+        return redirect()->to('admin/settings/contact')->with('success', 'Contact settings updated successfully');
     }
 
     /**
@@ -823,7 +1000,7 @@ class Admin extends BaseController
         $this->_handle_upload('login_banner', 'login_banner', 'uploads/system');
         $this->_handle_upload('home_banner', 'home_banner', 'uploads/system');
 
-        return redirect()->back()->with('success', 'Banner settings updated successfully');
+        return redirect()->to('admin/settings/banner')->with('success', 'Banner settings updated successfully');
     }
 
     /**
@@ -858,7 +1035,7 @@ class Admin extends BaseController
             }
         }
 
-        return redirect()->back()->with('success', 'About page settings updated successfully');
+        return redirect()->to('admin/settings/about')->with('success', 'About page settings updated successfully');
     }
 
     // ==================== TEAM MANAGEMENT ====================

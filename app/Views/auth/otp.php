@@ -25,17 +25,28 @@
                         <div class="text-center mb-4">
                             <?php
                             $settings = model('App\Models\BaseModel')->get_settings();
+                            $otpMethod = session()->get('otp_method');
+
                             if (!empty($settings['system_logo'])):
                                 ?>
                                 <img src="<?= base_url('uploads/system/' . $settings['system_logo']) ?>" alt="Logo" class="img-fluid mb-4" style="max-height: 60px;">
                             <?php else: ?>
                                 <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
-                                    <i class="fas fa-shield-alt fa-3x"></i>
+                                    <?php if ($otpMethod === 'authenticator'): ?>
+                                        <i class="fas fa-mobile-alt fa-3x"></i>
+                                    <?php else: ?>
+                                        <i class="fas fa-envelope-open-text fa-3x"></i>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             
-                            <h2 class="fw-bold text-dark mb-2">Verification Required</h2>
-                            <p class="text-muted">We've sent a 6-digit code to your email.<br>Please enter it below to continue.</p>
+                            <h2 class="fw-bold text-dark mb-2">Two-Factor Authentication</h2>
+                            
+                            <?php if ($otpMethod === 'authenticator'): ?>
+                                <p class="text-muted">Please enter the 6-digit code from your<br><strong>Authenticator App</strong>.</p>
+                            <?php else: ?>
+                                <p class="text-muted">We've sent a 6-digit code to your email.<br>Please enter it below to continue.</p>
+                            <?php endif; ?>
                         </div>
 
                         <?php if (session()->getFlashdata('error')): ?>
@@ -56,10 +67,24 @@
                             <?= csrf_field() ?>
                             
                             <div class="mb-4">
-                                <label for="otp" class="form-label text-muted small fw-bold text-uppercase">One-Time Password (OTP)</label>
+                                <label for="otp" class="form-label text-muted small fw-bold text-uppercase">
+                                    <?php if ($otpMethod === 'authenticator'): ?>
+                                        Authenticator Code
+                                    <?php else: ?>
+                                        One-Time Password (OTP)
+                                    <?php endif; ?>
+                                </label>
                                 <input class="form-control form-control-lg otp-input rounded-3 py-3" 
                                        id="otp" type="text" name="otp" 
                                        placeholder="123456" required maxlength="6" pattern="\d*" autofocus autocomplete="one-time-code">
+                                
+                                <?php if ($otpMethod === 'authenticator' && isset($settings['otp_enabled']) && $settings['otp_enabled'] === 'yes'): ?>
+                                    <div class="text-end mt-2">
+                                        <a href="<?= base_url('login/switch-to-email-otp') ?>" class="text-decoration-none small">
+                                            <i class="fas fa-envelope me-1"></i> Try sending code to email instead
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm transition-hover">

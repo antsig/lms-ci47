@@ -28,6 +28,7 @@ $routes->group('login', function ($routes) {
     // OTP Routes
     $routes->get('verify-otp', 'Login::verify_otp');
     $routes->post('process-verify-otp', 'Login::process_verify_otp');
+    $routes->get('switch-to-email-otp', 'Login::switch_to_email_otp');
 });
 
 $routes->group('register', function ($routes) {
@@ -35,6 +36,14 @@ $routes->group('register', function ($routes) {
     $routes->post('process', 'Register::process');
     $routes->get('instructor', 'Register::instructor');
     $routes->post('instructor/process', 'Register::process_instructor');
+});
+
+// ==================== COMMON SECURITY ROUTES (ALL ROLES) ====================
+$routes->group('security', ['filter' => 'auth'], function ($routes) {
+    $routes->get('setup-authenticator', 'SecurityController::setup_authenticator');
+    $routes->post('verify-authenticator', 'SecurityController::verify_authenticator');
+    $routes->post('disable-authenticator', 'SecurityController::disable_authenticator');
+    $routes->get('send-disable-otp', 'SecurityController::send_disable_otp');
 });
 
 // ==================== STUDENT ROUTES ====================
