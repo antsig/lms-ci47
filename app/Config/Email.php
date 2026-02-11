@@ -6,8 +6,8 @@ use CodeIgniter\Config\BaseConfig;
 
 class Email extends BaseConfig
 {
-    public string $fromEmail  = '';
-    public string $fromName   = '';
+    public string $fromEmail = '';
+    public string $fromName = '';
     public string $recipients = '';
 
     /**
@@ -49,6 +49,19 @@ class Email extends BaseConfig
      * SMTP Port
      */
     public int $SMTPPort = 25;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->SMTPHost = env('SMTP_HOST', '');
+        $this->SMTPUser = env('SMTP_USER', '');
+        $this->SMTPPass = env('SMTP_PASS', '');
+        $this->SMTPPort = (int) env('SMTP_PORT', 25);
+        $this->protocol = env('EMAIL_PROTOCOL', 'smtp');
+        $this->fromEmail = env('email.fromEmail', 'no-reply@lms.com');
+        $this->fromName = env('email.fromName', 'LMS Admin');
+    }
 
     /**
      * SMTP Timeout (in seconds)

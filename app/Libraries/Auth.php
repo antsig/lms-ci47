@@ -13,7 +13,7 @@ class Auth
     {
         $this->session = \Config\Services::session();
         $this->userModel = new UserModel();
-        helper('cookie');
+        helper(['cookie', 'text']);
     }
 
     /**
@@ -32,6 +32,105 @@ class Auth
                 ];
             }
 
+            // --- OTP FLOW START ---
+            // Generate and Send OTP
+            $otpSent = $this->sendOTP($user);
+
+            if ($otpSent) {
+                // Store temporary session for OTP verification
+                $this->session->set('temp_otp_user_id', $user['id']);
+                $this->session->set('temp_remember', $remember);
+
+                $msg = 'Please enter the OTP sent to your email.';
+                if (ENVIRONMENT === 'development' && is_string($otpSent)) {
+                    $msg .= " (Dev Mode OTP: $otpSent)";
+                }
+
+                return [
+                    'success' => true,
+                    'otp_required' => true,
+                    'message' => $msg
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Failed to send OTP. Please check email configuration.'
+                ];
+            }
+            // --- OTP FLOW END ---
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Invalid email or password'
+        ];
+    }
+
+    /**
+     * Generate OTP
+     */
+    public function generateOTP($userId)
+    {
+        $otp = random_string('numeric', 6);
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        $this->userModel->update($userId, [
+            'otp_code' => $otp,
+            'otp_expires_at' => $expiresAt
+        ]);
+
+        return $otp;
+    }
+
+    /**
+     * Send OTP Email
+     */
+    public function sendOTP($user)
+    {
+        $otp = $this->generateOTP($user['id']);
+        $email = \Config\Services::email();
+
+        $email->setTo($user['email']);
+        $email->setSubject('Login OTP - LMS');
+        $email->setMessage("Your Login OTP is: <strong>$otp</strong>.<br>It expires in 10 minutes.");
+
+        if ($email->send()) {
+            return $otp;
+        } else {
+            log_message('error', 'Email Send Error: ' . $email->printDebugger(['headers']));
+            // Dev Mode: Return OTP even if email fails
+            if (ENVIRONMENT === 'development') {
+                return $otp;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Verify OTP and Login
+     */
+    public function verifyOTP($otp)
+    {
+        $userId = $this->session->get('temp_otp_user_id');
+        $remember = $this->session->get('temp_remember');
+
+        if (!$userId) {
+            return [
+                'success' => false,
+                'message' => 'Session expired. Please login again.'
+            ];
+        }
+
+        $user = $this->userModel->find($userId);
+
+        if ($user && $user['otp_code'] == $otp && strtotime($user['otp_expires_at']) > time()) {
+            // Clear OTP
+            $this->userModel->update($userId, ['otp_code' => null, 'otp_expires_at' => null]);
+
+            // Clear temp session
+            $this->session->remove(['temp_otp_user_id', 'temp_remember']);
+
+            // --- ORIGINAL LOGIN LOGIC ---
             // Set session data
             $sessionData = [
                 'user_id' => $user['id'],
@@ -52,14 +151,54 @@ class Auth
 
             return [
                 'success' => true,
-                'message' => 'Login successful',
                 'user' => $user
             ];
         }
 
         return [
             'success' => false,
-            'message' => 'Invalid email or password'
+            'message' => 'Invalid or expired OTP.'
+        ];
+    }
+
+    /**
+     * Verify OTP by Email (For Password Reset)
+     */
+    public function verifyOTPByEmail($email, $otp)
+    {
+        $user = $this->userModel->where('email', $email)->first();
+
+        if ($user && $user['otp_code'] == $otp && strtotime($user['otp_expires_at']) > time()) {
+            return $user;
+        }
+
+        return false;
+    }
+
+    /**
+     * Reset Password (Actual update)
+     */
+    public function resetPasswordWithOTP($email, $otp, $newPassword)
+    {
+        $user = $this->verifyOTPByEmail($email, $otp);
+
+        if ($user) {
+            // Update password and clear OTP
+            $this->userModel->update($user['id'], [
+                'password' => password_hash($newPassword, PASSWORD_DEFAULT),
+                'otp_code' => null,
+                'otp_expires_at' => null
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Password reset successfully. You can now login.'
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Invalid or expired OTP.'
         ];
     }
 

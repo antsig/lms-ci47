@@ -31,6 +31,8 @@ class UserModel extends BaseModel
         'is_instructor',
         'image',
         'signature',
+        'otp_code',
+        'otp_expires_at',
     ];
 
     // Dates

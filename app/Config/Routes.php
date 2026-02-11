@@ -24,6 +24,10 @@ $routes->group('login', function ($routes) {
     $routes->post('forgot-password/process', 'Login::process_forgot_password');
     $routes->get('reset-password', 'Login::reset_password');
     $routes->post('reset-password/process', 'Login::process_reset_password');
+
+    // OTP Routes
+    $routes->get('verify-otp', 'Login::verify_otp');
+    $routes->post('process-verify-otp', 'Login::process_verify_otp');
 });
 
 $routes->group('register', function ($routes) {
