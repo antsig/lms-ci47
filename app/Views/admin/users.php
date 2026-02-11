@@ -9,7 +9,7 @@
 <div class="card">
     <div class="card-header bg-white">
         <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold">Manage Users</h5>
+            <h5 class="mb-0 fw-bold"><?= esc($title) ?></h5>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
                 <i class="fas fa-plus"></i> Add User
             </button>
@@ -20,7 +20,7 @@
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
                 <a class="nav-link <?= $role_filter == 'all' ? 'active' : '' ?>" href="<?= base_url('/admin/users') ?>">
-                    All Users (<?= count($users) ?>)
+                    All Users
                 </a>
             </li>
             <li class="nav-item">

@@ -40,14 +40,22 @@ if (!$current)
     <a href="<?= base_url('/admin/payment_history') ?>" class="<?= $current == 'payment_history' ? 'active' : '' ?>">History</a>
 </div>
 
-<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'true' : 'false' ?>">
+<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#userSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['users', 'team']) || strpos($current, 'user') !== false ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['users', 'team']) || strpos($current, 'user') !== false ? 'true' : 'false' ?>">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-users"></i> <span class="link-text">User Management</span>
+    </div>
+</a>
+<div class="collapse sidebar-submenu <?= in_array($current, ['users', 'team']) || strpos($current, 'user') !== false ? 'show' : '' ?>" id="userSubmenu">
+    <a href="<?= base_url('/admin/users') ?>" class="<?= uri_string() == 'admin/users' || strpos(uri_string(), 'admin/users/') !== false ? 'active' : '' ?>">Users</a>
+    <a href="<?= base_url('/admin/team') ?>" class="<?= strpos($current, 'team') !== false ? 'active' : '' ?>">Team Management</a>
+</div>
+
+<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'true' : 'false' ?>">
     <div class="d-flex align-items-center">
         <i class="fas fa-cogs"></i> <span class="link-text">Settings</span>
     </div>
 </a>
-<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'users', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'show' : '' ?>" id="settingsSubmenu">
-    <a href="<?= base_url('/admin/team') ?>" class="<?= strpos($current, 'team') !== false ? 'active' : '' ?>">Team Management</a>
-    <a href="<?= base_url('/admin/users') ?>" class="<?= strpos($current, 'user') !== false ? 'active' : '' ?>">Users</a>
+<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'show' : '' ?>" id="settingsSubmenu">
     <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">System Settings</a>
     <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
     <a href="<?= base_url('/admin/settings/about') ?>" class="<?= strpos(uri_string(), 'settings/about') !== false ? 'active' : '' ?>">About Page</a>

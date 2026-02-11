@@ -153,8 +153,17 @@ class Admin extends BaseController
             $users = $this->userModel->findAll();
         }
 
+        $title = 'All Users';
+        if ($role == 'students') {
+            $title = 'Manage Students';
+        } elseif ($role == 'instructors') {
+            $title = 'Manage Instructors';
+        } elseif ($role == 'admins') {
+            $title = 'Manage Admins';
+        }
+
         $data = [
-            'title' => 'Manage Users',
+            'title' => $title,
             'users' => $users,
             'role_filter' => $role
         ];
