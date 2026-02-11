@@ -33,31 +33,61 @@ class Auth
             }
 
             // --- OTP FLOW START ---
-            // Generate and Send OTP
-            $otpSent = $this->sendOTP($user);
+            $settings = model('App\Models\BaseModel')->get_settings();
+            $otpEnabled = isset($settings['otp_enabled']) && $settings['otp_enabled'] === 'yes';
 
-            if ($otpSent) {
-                // Store temporary session for OTP verification
-                $this->session->set('temp_otp_user_id', $user['id']);
-                $this->session->set('temp_remember', $remember);
+            if ($otpEnabled) {
+                // Generate and Send OTP
+                $otpSent = $this->sendOTP($user);
 
-                $msg = 'Please enter the OTP sent to your email.';
-                if (ENVIRONMENT === 'development' && is_string($otpSent)) {
-                    $msg .= " (Dev Mode OTP: $otpSent)";
+                if ($otpSent) {
+                    // Store temporary session for OTP verification
+                    $this->session->set('temp_otp_user_id', $user['id']);
+                    $this->session->set('temp_remember', $remember);
+
+                    $msg = 'Please enter the OTP sent to your email.';
+                    if (ENVIRONMENT === 'development' && is_string($otpSent)) {
+                        $msg .= " (Dev Mode OTP: $otpSent)";
+                    }
+
+                    return [
+                        'success' => true,
+                        'otp_required' => true,
+                        'message' => $msg
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to send OTP. Please check email configuration.'
+                    ];
                 }
-
-                return [
-                    'success' => true,
-                    'otp_required' => true,
-                    'message' => $msg
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send OTP. Please check email configuration.'
-                ];
             }
             // --- OTP FLOW END ---
+
+            // --- DIRECT LOGIN (OTP Disabled) ---
+            // Set session data
+            $sessionData = [
+                'user_id' => $user['id'],
+                'email' => $user['email'],
+                'role_id' => $user['role_id'],
+                'is_instructor' => $user['is_instructor'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'logged_in' => true
+            ];
+
+            $this->session->set($sessionData);
+
+            // Handle remember me
+            if ($remember) {
+                $this->setRememberMe($user['id']);
+            }
+
+            return [
+                'success' => true,
+                'otp_required' => false,
+                'user' => $user
+            ];
         }
 
         return [
@@ -88,10 +118,31 @@ class Auth
     public function sendOTP($user)
     {
         $otp = $this->generateOTP($user['id']);
+
+        // Load Settings for SMTP
+        $settings = model('App\Models\BaseModel')->get_settings();
         $email = \Config\Services::email();
 
+        // Apply SMTP Settings if provided
+        if (!empty($settings['smtp_host'])) {
+            $config = [
+                'protocol' => 'smtp',
+                'SMTPHost' => $settings['smtp_host'],
+                'SMTPUser' => $settings['smtp_user'] ?? '',
+                'SMTPPass' => $settings['smtp_pass'] ?? '',
+                'SMTPPort' => (int) ($settings['smtp_port'] ?? 587),
+                'SMTPCrypto' => $settings['smtp_crypto'] ?? 'tls',
+                'mailType' => 'html',
+                'charset' => 'utf-8',
+                'newline' => "\r\n",
+                'wordWrap' => true
+            ];
+            $email->initialize($config);
+        }
+
         $email->setTo($user['email']);
-        $email->setSubject('Login OTP - LMS');
+        $email->setFrom($settings['system_email'] ?? 'no-reply@lms.com', $settings['system_name'] ?? 'LMS System');
+        $email->setSubject('Login OTP - ' . ($settings['system_name'] ?? 'LMS'));
         $email->setMessage("Your Login OTP is: <strong>$otp</strong>.<br>It expires in 10 minutes.");
 
         if ($email->send()) {

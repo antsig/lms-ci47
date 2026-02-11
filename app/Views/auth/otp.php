@@ -2,77 +2,82 @@
 
 <?= $this->section('content') ?>
 
+<style>
+    .otp-input {
+        letter-spacing: 1.5rem;
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .otp-input::placeholder {
+        letter-spacing: normal;
+        font-size: 1rem;
+        font-weight: normal;
+    }
+</style>
+
 <div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center py-5">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow-lg border-0 overflow-hidden rounded-4">
-                    <div class="row g-0">
-                        <!-- Left Side: OTP Form -->
-                        <div class="col-md-6 bg-white p-5 d-flex flex-column justify-content-center order-2 order-md-1">
-                            <div class="text-center mb-4">
-                                <?php
-                                $settings = model('App\Models\BaseModel')->get_settings();
-                                if (!empty($settings['system_logo'])):
-                                    ?>
-                                    <img src="<?= base_url('uploads/system/' . $settings['system_logo']) ?>" alt="Logo" class="img-fluid mb-3" style="max-height: 50px;">
-                                <?php else: ?>
-                                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-                                <?php endif; ?>
-                                <h2 class="fw-bold text-dark">Two-Factor Authentication</h2>
-                                <p class="text-muted">Enter the code sent to your email address.</p>
-                            </div>
-
-                            <?php if (session()->getFlashdata('error')): ?>
-                                <div class="alert alert-danger shadow-sm border-0">
-                                    <ul class="mb-0 small">
-                                        <li><?= session()->getFlashdata('error') ?></li>
-                                    </ul>
+            <div class="col-lg-5 col-md-8">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <?php
+                            $settings = model('App\Models\BaseModel')->get_settings();
+                            if (!empty($settings['system_logo'])):
+                                ?>
+                                <img src="<?= base_url('uploads/system/' . $settings['system_logo']) ?>" alt="Logo" class="img-fluid mb-4" style="max-height: 60px;">
+                            <?php else: ?>
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-shield-alt fa-3x"></i>
                                 </div>
                             <?php endif; ?>
-
-                            <?php if (session()->getFlashdata('info')): ?>
-                                <div class="alert alert-info shadow-sm border-0">
-                                    <ul class="mb-0 small">
-                                        <li><?= session()->getFlashdata('info') ?></li>
-                                    </ul>
-                                </div>
-                            <?php endif; ?>
-
-                            <form action="<?= base_url('/login/process-verify-otp') ?>" method="post">
-                                <?= csrf_field() ?>
-                                
-                                <div class="form-floating mb-3">
-                                    <input class="form-control" id="otp" type="text" name="otp" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="\d*" autofocus>
-                                    <label for="otp">Enter 6-Digit OTP</label>
-                                </div>
-
-                                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-pill">
-                                    <i class="fas fa-check-circle me-2"></i> Verify Login
-                                </button>
-                            </form>
                             
-                            <hr class="my-4 text-muted opacity-25">
-
-                            <div class="text-center">
-                                <a href="<?= base_url('/login') ?>" class="text-decoration-none small text-muted">
-                                    <i class="fas fa-arrow-left me-1"></i> Back to Login
-                                </a>
-                            </div>
+                            <h2 class="fw-bold text-dark mb-2">Verification Required</h2>
+                            <p class="text-muted">We've sent a 6-digit code to your email.<br>Please enter it below to continue.</p>
                         </div>
 
-                        <!-- Right Side: Image/Banner -->
-                        <div class="col-md-6 d-none d-md-block position-relative order-1 order-md-2" style="background-color: #f8f9fa;">
-                            <?php
-                            $bannerImg = !empty($settings['login_banner']) ? base_url('uploads/system/' . $settings['login_banner']) : 'https://images.unsplash.com/photo-1614064641938-3e8529437213?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80';
-                            ?>
-                            <img src="<?= $bannerImg ?>" alt="Login Banner" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0">
-                            <div class="position-absolute bottom-0 start-0 w-100 p-5 text-white" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
-                                <h3 class="fw-bold mb-2">Secure Your Account</h3>
-                                <p class="mb-0 small opacity-75">Two-factor authentication adds an extra layer of security to your account.</p>
+                        <?php if (session()->getFlashdata('error')): ?>
+                            <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center rounded-3 mb-4">
+                                <i class="fas fa-exclamation-circle me-2 fs-5"></i>
+                                <div><?= session()->getFlashdata('error') ?></div>
                             </div>
+                        <?php endif; ?>
+
+                        <?php if (session()->getFlashdata('info')): ?>
+                            <div class="alert alert-info shadow-sm border-0 d-flex align-items-center rounded-3 mb-4">
+                                <i class="fas fa-info-circle me-2 fs-5"></i>
+                                <div><?= session()->getFlashdata('info') ?></div>
+                            </div>
+                        <?php endif; ?>
+
+                        <form action="<?= base_url('/login/process-verify-otp') ?>" method="post">
+                            <?= csrf_field() ?>
+                            
+                            <div class="mb-4">
+                                <label for="otp" class="form-label text-muted small fw-bold text-uppercase">One-Time Password (OTP)</label>
+                                <input class="form-control form-control-lg otp-input rounded-3 py-3" 
+                                       id="otp" type="text" name="otp" 
+                                       placeholder="123456" required maxlength="6" pattern="\d*" autofocus autocomplete="one-time-code">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm transition-hover">
+                                <i class="fas fa-arrow-right me-2"></i> Verify & Login
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <p class="text-muted small mb-3">Didn't receive the code?</p>
+                            <a href="<?= base_url('/login') ?>" class="text-decoration-none fw-semibold text-primary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Login
+                            </a>
                         </div>
                     </div>
+                </div>
+                
+                <div class="text-center mt-4 text-muted small">
+                    &copy; <?= date('Y') ?> <?= $settings['system_name'] ?? 'LMS' ?>. All rights reserved.
                 </div>
             </div>
         </div>
@@ -80,3 +85,4 @@
 </div>
 
 <?= $this->endSection() ?>
+
