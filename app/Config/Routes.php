@@ -181,6 +181,20 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     $routes->get('settings/about', 'Admin::about');
     $routes->post('settings/update-about', 'Admin::update_about');
 
+    // Contact Page Settings
+    $routes->get('settings/contact', 'Admin::contact_settings');
+    $routes->post('settings/update-contact', 'Admin::update_contact_settings');
+
+    // Messages (Inbox)
+    $routes->get('messages', 'Admin::messages');
+    $routes->get('messages/delete/(:num)', 'Admin::delete_message/$1');
+
+    // Features Management (What We Offer)
+    $routes->get('features', 'Admin::features');
+    $routes->match(['get', 'post'], 'features/create', 'Admin::create_feature');
+    $routes->match(['get', 'post'], 'features/edit/(:num)', 'Admin::edit_feature/$1');
+    $routes->get('features/delete/(:num)', 'Admin::delete_feature/$1');
+
     // Team Management
     $routes->get('team', 'Admin::team');
     $routes->get('team/create', 'Admin::create_team_member');

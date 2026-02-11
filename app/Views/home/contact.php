@@ -72,26 +72,32 @@
                             <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
                             <div>
                                 <h5 class="mb-1">Address</h5>
-                                <p class="text-muted">123 Learning St, Education City, 12345</p>
+                                <p class="text-muted"><?= esc($settings['contact_address'] ?? '123 Learning St, Education City') ?></p>
                             </div>
                         </li>
                         <li class="d-flex align-items-start mb-4">
                             <i class="fas fa-phone fa-2x text-primary me-4"></i>
                             <div>
                                 <h5 class="mb-1">Phone</h5>
-                                <p class="text-muted"><a href="tel:+1234567890" class="text-reset">+1 (234) 567-890</a></p>
+                                <p class="text-muted"><a href="tel:<?= esc($settings['contact_phone'] ?? '+1234567890') ?>" class="text-reset"><?= esc($settings['contact_phone'] ?? '+1 (234) 567-890') ?></a></p>
                             </div>
                         </li>
                         <li class="d-flex align-items-start mb-4">
                             <i class="fas fa-envelope fa-2x text-primary me-4"></i>
                             <div>
                                 <h5 class="mb-1">Email</h5>
-                                <p class="text-muted"><a href="mailto:support@lms.com" class="text-reset">support@lms.com</a></p>
+                                <p class="text-muted"><a href="mailto:<?= esc($settings['contact_email'] ?? 'support@lms.com') ?>" class="text-reset"><?= esc($settings['contact_email'] ?? 'support@lms.com') ?></a></p>
                             </div>
                         </li>
                     </ul>
                     <div class="mt-4">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.227497126131!2d-122.4214628846816!3d37.78438497975849!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ3JzAzLjgiTiAxMjLCsDI1JzE3LjMiVw!5e0!3m2!1sen!2sus!4v1646768846831!5m2!1sen!2sus" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                        <?php if (!empty($settings['contact_map_iframe'])): ?>
+                            <div class="ratio ratio-16x9">
+                                <?= $settings['contact_map_iframe'] // Raw output for iframe ?> 
+                            </div>
+                        <?php else: ?>
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.227497126131!2d-122.4214628846816!3d37.78438497975849!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDQ3JzAzLjgiTiAxMjLCsDI1JzE3LjMiVw!5e0!3m2!1sen!2sus!4v1646768846831!5m2!1sen!2sus" width="100%" height="250" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

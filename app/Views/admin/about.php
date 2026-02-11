@@ -19,13 +19,28 @@
                 <input type="text" class="form-control" name="settings[about_us_title]" value="<?= esc($settings['about_us_title'] ?? 'About Our Learning Platform') ?>" required>
             </div>
 
+            <div class="mb-3">
+                <label class="form-label fw-bold">Page Tagline (Lead Text)</label>
+                <input type="text" class="form-control" name="settings[about_us_tagline]" value="<?= esc($settings['about_us_tagline'] ?? 'Discover our mission, vision, and the team dedicated to empowering learners everywhere.') ?>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Main Content</label>
+
                 <textarea class="form-control" name="settings[about_us_content]" rows="6"><?= esc($settings['about_us_content'] ?? 'Discover our mission, vision, and the team dedicated to empowering learners everywhere.') ?></textarea>
                 <small class="text-muted">You can use basic HTML tags.</small>
             </div>
 
             <div class="mb-3 form-check form-switch">
+                <input type="hidden" name="settings[about_us_show_team]" value="0">
                 <input class="form-check-input" type="checkbox" id="showTeam" name="settings[about_us_show_team]" value="1" <?= ($settings['about_us_show_team'] ?? '1') == '1' ? 'checked' : '' ?>>
                 <label class="form-check-label fw-bold" for="showTeam">Show "Meet the Team" Section</label>
+            </div>
+
+            <div class="mb-3 form-check form-switch">
+                <input type="hidden" name="settings[about_us_show_features]" value="0">
+                <input class="form-check-input" type="checkbox" id="showFeatures" name="settings[about_us_show_features]" value="1" <?= ($settings['about_us_show_features'] ?? '1') == '1' ? 'checked' : '' ?>>
+                <label class="form-check-label fw-bold" for="showFeatures">Show "What We Offer" Section</label>
             </div>
 
             <div class="mb-3">

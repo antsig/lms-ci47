@@ -50,15 +50,27 @@ if (!$current)
     <a href="<?= base_url('/admin/team') ?>" class="<?= strpos($current, 'team') !== false ? 'active' : '' ?>">Team Management</a>
 </div>
 
-<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'true' : 'false' ?>">
+<a href="<?= base_url('/admin/messages') ?>" class="<?= strpos($current, 'messages') !== false ? 'active' : '' ?>">
+    <i class="fas fa-inbox"></i> <span class="link-text">Messages</span>
+    <?php
+    $unreadCount = model('App\Models\ContactModel')->getUnreadCount();
+    if ($unreadCount > 0):
+        ?>
+        <span class="badge bg-danger rounded-pill ms-2"><?= $unreadCount ?></span>
+    <?php endif; ?>
+</a>
+
+<a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#settingsSubmenu" class="sidebar-dropdown-toggle <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner', 'contact_settings']) ? '' : 'collapsed' ?>" aria-expanded="<?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner', 'contact_settings']) ? 'true' : 'false' ?>">
     <div class="d-flex align-items-center">
         <i class="fas fa-cogs"></i> <span class="link-text">Settings</span>
     </div>
 </a>
-<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner']) ? 'show' : '' ?>" id="settingsSubmenu">
+<div class="collapse sidebar-submenu <?= in_array($current, ['settings', 'add_user', 'edit_user', 'page_settings', 'layouting', 'icons', 'logo', 'banner', 'contact_settings']) ? 'show' : '' ?>" id="settingsSubmenu">
+    <a href="<?= base_url('/admin/features') ?>" class="<?= strpos(uri_string(), 'features') !== false ? 'active' : '' ?>">Website Features</a>
     <a href="<?= base_url('/admin/settings') ?>" class="<?= $current == 'settings' ? 'active' : '' ?>">System Settings</a>
     <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
     <a href="<?= base_url('/admin/settings/about') ?>" class="<?= strpos(uri_string(), 'settings/about') !== false ? 'active' : '' ?>">About Page</a>
+    <a href="<?= base_url('/admin/settings/contact') ?>" class="<?= strpos(uri_string(), 'settings/contact') !== false ? 'active' : '' ?>">Contact Page</a>
     <a href="<?= base_url('/admin/settings/layout') ?>" class="<?= $current == 'layout' ? 'active' : '' ?>">Home Layout</a>
     <a href="<?= base_url('/admin/settings/icons') ?>" class="<?= $current == 'icons' ? 'active' : '' ?>">Manage Icons</a>
     <a href="<?= base_url('/admin/settings/logo') ?>" class="<?= $current == 'logo' ? 'active' : '' ?>">Logo</a>

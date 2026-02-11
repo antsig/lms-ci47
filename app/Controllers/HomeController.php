@@ -154,10 +154,12 @@ class HomeController extends BaseController
     public function about()
     {
         $teamModel = new \App\Models\TeamModel();
+        $featureModel = new \App\Models\FeatureModel();
 
         $data = [
             'title' => 'About Us',
-            'team_members' => $teamModel->getTeamForDisplay()
+            'team_members' => $teamModel->getTeamForDisplay(),
+            'features' => $featureModel->getFeatures()
         ];
 
         return view('home/about', $data);
@@ -168,8 +170,11 @@ class HomeController extends BaseController
      */
     public function contact()
     {
+        $settings = model('App\Models\BaseModel')->get_settings();
+
         $data = [
             'title' => 'Contact Us',
+            'settings' => $settings,
             'validation' => \Config\Services::validation()
         ];
 
@@ -192,8 +197,19 @@ class HomeController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Save to database or send email
-        // For now, just show success message
+        // Save to database
+        $contactModel = new \App\Models\ContactModel();
+        $contactModel->save([
+            'name' => $this->request->getPost('name'),
+            'email' => $this->request->getPost('email'),
+            'subject' => $this->request->getPost('subject'),
+            'message' => $this->request->getPost('message'),
+            'read_status' => 0,
+            'created_at' => time()  // Model uses timestamps but let's be explicit or let model handle it.
+            // Since I set useTimestamps=true in Model, I can omit this or pass it.
+            // Model config: protected $dateFormat = 'int';
+            // So CI4 should handle it if I don't pass it, but let's depend on standard save.
+        ]);
 
         return redirect()->back()->with('success', 'Thank you for contacting us. We will get back to you soon.');
     }

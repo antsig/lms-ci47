@@ -680,6 +680,142 @@ class Admin extends BaseController
     }
 
     /**
+     * Contact Page Settings
+     */
+    public function contact_settings()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Contact Page Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/settings/contact', $data);
+    }
+
+    /**
+     * Update Contact Settings
+     */
+    public function update_contact_settings()
+    {
+        $settings = $this->request->getPost('settings');
+
+        if ($settings) {
+            foreach ($settings as $key => $value) {
+                // Ensure map iframe is cleaned if needed, but for now we trust admin
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Contact settings updated successfully');
+    }
+
+    /**
+     * Messages Inbox
+     */
+    public function messages()
+    {
+        $contactModel = new \App\Models\ContactModel();
+
+        $data = [
+            'title' => 'Inbox',
+            'messages' => $contactModel->orderBy('created_at', 'DESC')->paginate(10),
+            'pager' => $contactModel->pager
+        ];
+
+        return view('admin/messages/index', $data);
+    }
+
+    /**
+     * Delete Message
+     */
+    public function delete_message($id)
+    {
+        $contactModel = new \App\Models\ContactModel();
+        $contactModel->delete($id);
+        return redirect()->back()->with('success', 'Message deleted successfully');
+    }
+
+    // ==================== FEATURES MANAGEMENT ====================
+
+    /**
+     * Features Management
+     */
+    public function features()
+    {
+        $featureModel = new \App\Models\FeatureModel();
+
+        $data = [
+            'title' => 'Website Features',
+            'features' => $featureModel->orderBy('display_order', 'ASC')->findAll()
+        ];
+
+        return view('admin/features/index', $data);
+    }
+
+    public function create_feature()
+    {
+        if ($this->request->getMethod() == 'post') {
+            $featureModel = new \App\Models\FeatureModel();
+
+            $featureModel->save([
+                'icon' => $this->request->getPost('icon'),
+                'title' => $this->request->getPost('title'),
+                'description' => $this->request->getPost('description'),
+                'display_order' => $this->request->getPost('display_order')
+            ]);
+
+            return redirect()->to('/admin/features')->with('success', 'Feature created successfully');
+        }
+
+        $data = [
+            'title' => 'Add Feature',
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/features/create', $data);
+    }
+
+    public function edit_feature($id)
+    {
+        $featureModel = new \App\Models\FeatureModel();
+        $feature = $featureModel->find($id);
+
+        if (!$feature) {
+            return redirect()->to('/admin/features')->with('error', 'Feature not found');
+        }
+
+        if ($this->request->getMethod() == 'post') {
+            $featureModel->save([
+                'id' => $id,
+                'icon' => $this->request->getPost('icon'),
+                'title' => $this->request->getPost('title'),
+                'description' => $this->request->getPost('description'),
+                'display_order' => $this->request->getPost('display_order')
+            ]);
+
+            return redirect()->to('/admin/features')->with('success', 'Feature updated successfully');
+        }
+
+        $data = [
+            'title' => 'Edit Feature',
+            'feature' => $feature,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/features/edit', $data);
+    }
+
+    public function delete_feature($id)
+    {
+        $featureModel = new \App\Models\FeatureModel();
+        $featureModel->delete($id);
+        return redirect()->to('/admin/features')->with('success', 'Feature deleted successfully');
+    }
+
+    /**
      * Update banner settings
      */
     public function update_banner()
