@@ -71,6 +71,7 @@ if (!$current)
     <a href="<?= base_url('/admin/settings/page') ?>" class="<?= $current == 'page_settings' ? 'active' : '' ?>">Page Settings</a>
     <a href="<?= base_url('/admin/settings/about') ?>" class="<?= strpos(uri_string(), 'settings/about') !== false ? 'active' : '' ?>">About Page</a>
     <a href="<?= base_url('/admin/settings/contact') ?>" class="<?= strpos(uri_string(), 'settings/contact') !== false ? 'active' : '' ?>">Contact Page</a>
+    <a href="<?= base_url('/admin/settings/payment') ?>" class="<?= strpos(uri_string(), 'settings/payment') !== false ? 'active' : '' ?>">Payment Settings</a>
     <a href="<?= base_url('/admin/settings/layout') ?>" class="<?= $current == 'layout' ? 'active' : '' ?>">Home Layout</a>
     <a href="<?= base_url('/admin/settings/icons') ?>" class="<?= $current == 'icons' ? 'active' : '' ?>">Manage Icons</a>
     <a href="<?= base_url('/admin/settings/logo') ?>" class="<?= $current == 'logo' ? 'active' : '' ?>">Logo</a>

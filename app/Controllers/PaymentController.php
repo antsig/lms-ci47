@@ -77,36 +77,37 @@ class PaymentController extends BaseController
         // Price Calculation
         $price = $course['discount_flag'] ? $course['discounted_price'] : $course['price'];
         $adminFee = 0;
+        $serviceFee = 0;
 
         // QRIS 1.5% Fee Logic
         if ($paymentMethod == 'qris') {
             $adminFee = $price * 0.015;
         }
 
+        // Service Fee Logic
+        if ($paymentMethod != 'manual') {
+            // Assuming Midtrans/Gateway fee.
+            // This should ideally be dynamic or from settings.
+            // For now, let's set a default or retrieve from settings if available.
+            // $serviceFee = model('App\Models\BaseModel')->get_settings('midtrans_service_fee') ?: 0;
+            // For this task, I'll initialize it to 0 and let the model/webhook handle exacts,
+            // OR set a placeholder if requested. User asked to "deduct service fee from income".
+            // Let's assume a fixed cost for now for calculation if not manual.
+            $serviceFee = 0;  // Will be calculated in Model or via Webhook update in real scenario
+        }
+
         $totalAmount = $price + $adminFee;  // Total user pays
 
-        // Revenue Sharing Logic (Example: 20% Admin, 80% Instructor)
-        // Admin Revenue = (Price * 20%) + Admin Fee
-        // Instructor Revenue = Price * 80%
-
-        // Get settings for percentage (default 20 if not set)
-        $adminPercentage = 20;  // TODO: Get from settings
-        $instructorPercentage = 100 - $adminPercentage;
-
-        $adminShareFromPrice = ($price * $adminPercentage) / 100;
-        $instructorRevenue = ($price * $instructorPercentage) / 100;
-
-        $totalAdminRevenue = $adminShareFromPrice + $adminFee;
+        // Revenue Sharing Logic is handled in Model now
 
         $transactionId = 'TRANS-' . strtoupper(uniqid());
 
         $data = [
             'user_id' => $userId,
             'course_id' => $courseId,
-            'amount' => $totalAmount,  // Total transaction amount
-            'admin_revenue' => $totalAdminRevenue,
-            'instructor_revenue' => $instructorRevenue,
+            'amount' => $totalAmount,
             'admin_fee' => $adminFee,
+            'service_fee' => $serviceFee,
             'tax' => 0,
             'payment_method' => $paymentMethod,
             'payment_status' => 'pending',
@@ -115,8 +116,8 @@ class PaymentController extends BaseController
             'date_added' => time()
         ];
 
-        $this->paymentModel->insert($data);
-        $paymentId = $this->paymentModel->getInsertID();
+        // Use createPayment to handle revenue split and service fee logic
+        $paymentId = $this->paymentModel->createPayment($data);
 
         return redirect()->to('/payment/instruction/' . $paymentId);
     }

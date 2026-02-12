@@ -34,30 +34,20 @@
                        value="<?= esc($settings['system_email'] ?? 'admin@lms.com') ?>">
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Address</label>
-                <textarea class="form-control" name="settings[address]"><?= esc($settings['address'] ?? '') ?></textarea>
-            </div>
-
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Phone</label>
-                    <input type="text" class="form-control" name="settings[phone]" 
-                           value="<?= esc($settings['phone'] ?? '') ?>">
-                </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Admin Revenue Percentage (%)</label>
                      <input type="number" class="form-control" name="settings[admin_revenue_percentage]" 
                            value="<?= esc($settings['admin_revenue_percentage'] ?? '20') ?>">
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Currency</label>
                     <input type="text" class="form-control" name="settings[currency]" 
                            value="<?= esc($settings['currency'] ?? 'Rp') ?>">
                 </div>
+            </div>
+
+            <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Language</label>
                     <input type="text" class="form-control" name="settings[language]" 

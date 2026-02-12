@@ -307,6 +307,43 @@ class Admin extends BaseController
         return $this->response->setJSON(['success' => false, 'message' => 'Failed to send email.']);
     }
 
+    /**
+     * Payment Settings
+     */
+    public function payment_settings()
+    {
+        $settings = $this->baseModel->get_settings();
+
+        $data = [
+            'title' => 'Payment Settings',
+            'settings' => $settings,
+            'validation' => \Config\Services::validation()
+        ];
+
+        return view('admin/payment_settings', $data);
+    }
+
+    /**
+     * Update payment settings
+     */
+    public function update_payment_settings()
+    {
+        $settings = $this->request->getPost('settings');
+
+        if ($settings) {
+            foreach ($settings as $key => $value) {
+                // Determine Midtrans Environment URL based on mode
+                if ($key == 'midtrans_mode') {
+                    $isProduction = ($value == 'production');
+                    $this->baseModel->update_settings('midtrans_is_production', $isProduction ? 1 : 0);
+                }
+                $this->baseModel->update_settings($key, $value);
+            }
+        }
+
+        return redirect()->to('admin/settings/payment')->with('success', 'Payment settings updated successfully');
+    }
+
     // ==================== USER MANAGEMENT ====================
 
     /**

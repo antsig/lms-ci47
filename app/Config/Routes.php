@@ -198,6 +198,10 @@ $routes->group('admin', ['filter' => 'role:admin'], function ($routes) {
     $routes->get('settings/contact', 'Admin::contact_settings');
     $routes->post('settings/update-contact', 'Admin::update_contact_settings');
 
+    // Payment Settings
+    $routes->get('settings/payment', 'Admin::payment_settings');
+    $routes->post('settings/update-payment', 'Admin::update_payment_settings');
+
     // Messages (Inbox)
     $routes->get('messages', 'Admin::messages');
     $routes->get('messages/delete/(:num)', 'Admin::delete_message/$1');

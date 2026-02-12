@@ -12,7 +12,7 @@ class PaymentModel extends BaseModel
     protected $protectFields = true;
 
     protected $allowedFields = [
-        'user_id', 'payment_type', 'course_id', 'amount', 'date_added',
+        'user_id', 'payment_method', 'course_id', 'amount', 'service_fee', 'date_added',
         'last_modified', 'admin_revenue', 'instructor_revenue', 'tax',
         'instructor_payment_status', 'transaction_id', 'session_id', 'coupon'
     ];
@@ -35,8 +35,19 @@ class PaymentModel extends BaseModel
             $instructorPercentage = $this->get_settings('instructor_revenue') ?: 70;
             $adminPercentage = 100 - $instructorPercentage;
 
-            $data['instructor_revenue'] = ($data['amount'] * $instructorPercentage) / 100;
-            $data['admin_revenue'] = ($data['amount'] * $adminPercentage) / 100;
+            $totalAmount = $data['amount'];
+            $serviceFee = $data['service_fee'] ?? 0;
+
+            // Revenue is calculated on the Gross Amount
+            $instructorRevenue = ($totalAmount * $instructorPercentage) / 100;
+            $adminRevenue = ($totalAmount * $adminPercentage) / 100;
+
+            // Service Fee is deducted from Admin's share (Net Revenue)
+            // Ensure Admin revenue doesn't go below 0
+            $adminRevenueNet = max(0, $adminRevenue - $serviceFee);
+
+            $data['instructor_revenue'] = $instructorRevenue;
+            $data['admin_revenue'] = $adminRevenueNet;
         }
 
         return $this->insert($data);
