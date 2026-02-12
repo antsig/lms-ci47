@@ -92,7 +92,7 @@ $settings = model('App\Models\BaseModel')->get_settings();
                         <img src="<?= $imgSrc ?>" class="rounded-circle mx-auto d-block object-fit-cover" alt="<?= esc($member['name']) ?>" style="width: 150px; height: 150px;">
                         <div class="card-body text-center">
                             <h5 class="card-title fw-bold unselectable"><?= esc($member['name']) ?></h5>
-                            <p class="card-text text-muted small"><?= esc($member['role']) ?></p>
+
                             <?php if (!empty($member['biography'])): ?>
                                 <p class="card-text small text-muted d-none d-md-block"><?= character_limiter(strip_tags($member['biography']), 60) ?></p>
                             <?php endif; ?>
